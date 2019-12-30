@@ -3,6 +3,8 @@ import argparse        as ap
 import scipy.linalg    as la
 import search_compiler as sc
 
+from timeit import default_timer as timer
+
 from qfast import synthesize, refine_circuit, hilbert_schmidt_distance
 from qfast import get_norder_paulis, pauli_dot_product, get_pauli_n_qubit_projection
 
@@ -63,11 +65,11 @@ if __name__ == "__main__":
     parser.add_argument( "unitary_file", type = str,
                          help = "Unitary file to synthesize" )
 
-    parser.add_argument( "qasm_file", type = str,
-                         help = "QASM output file" )
+    parser.add_argument( "circ_file", type = str,
+                         help = "Circ output file" )
 
-    parser.add_argument( "kernel", type = str, default = "qiskit_KAK",
-                         choices = [ "search_compiler", "qiskit_KAK" ] )
+    # parser.add_argument( "kernel", type = str, default = "qiskit_KAK",
+    #                      choices = [ "search_compiler", "qiskit_KAK" ] )
 
     parser.add_argument( "-t", "--test", action = "store_true",
                          help = "Verify circuit" )
@@ -81,8 +83,11 @@ if __name__ == "__main__":
     parser.add_argument( "-r", "--refine", action = "store_true",
                          help = "Refine circuit" )
 
-    parser.add_argument( "-o", "--optimize", action = "store_true",
-                         help = "Optimize circuit with qiskit" )
+    # parser.add_argument( "-o", "--optimize", action = "store_true",
+    #                      help = "Optimize circuit with qiskit" )
+
+    parser.add_argument( "-b", "--block_size", type = int, default = 2,
+                         help = "Synthesize into blocks of this size" )
 
     parser.add_argument( "-v", "--verbose", action = "count", default = 0,
                          help = "Verbose printouts" )
@@ -94,80 +99,107 @@ if __name__ == "__main__":
 
     num_qubits = int( np.log2( len( target ) ) )
 
-    if num_qubits >= 8:
-        gate_size = 5 if args.kernel == "search_compiler" else 4
+    start = timer()
+    circuit = synthesize( target, args.start_layer, args.layer_step,
+                          args.block_size, args.verbose )
+    end = timer()
 
-    elif num_qubits in [6, 7]:
-        gate_size = 4
-
-    elif num_qubits == 5:
-        gate_size = 3
-
-    elif num_qubits == 4:
-        gate_size = 3 if args.kernel == "search_compiler" else 2
-
-    elif num_qubits == 3:
-        if args.kernel == "search_compiler":
-            target = target.astype( 'complex128' )
-            search_compile( [(0,1,2), target] )
-        gate_size = 2
-
-    elif num_qubits == 2:
-        qiskit_kak_compile(  )
-
-    elif num_qubits <= 1:
-        raise RuntimeError( "Only synthesizes circuits with >= 2 qubits." )
-
-    target = target.astype( 'complex64' )
-    circuit = synthesize( target, args.start_layer, args.layer_step, gate_size, args.verbose )
+    if args.verbose >= 1:
+        print( "Found circuit in %f seconds" % end - start )
 
     if args.refine:
         target = target.astype( 'complex128' )
+        start = timer()
         circuit = refine_circuit( target, circuit, args.verbose )
+        end = timer()
+        if args.verbose >= 1:
+            print( "refined circuit in %f seconds" % end - start )
 
-    if args.test:
-        verify_circuit( target, circuit )
+    with open( args.circ_file, "w" ) as f:
+        f.write( str( circuit ) )
 
-    while ( gate_size > 3 or ( args.kernel == "qiskit_KAK" and gate_size > 2 ) ):
+    # if num_qubits >= 8:
+    #     gate_size = 5 if args.kernel == "search_compiler" else 4
 
-        if gate_size == 5:
-            gate_size = 3
+    # elif num_qubits in [6, 7]:
+    #     gate_size = 4
 
-        elif gate_size == 4:
-            gate_size = 3 if args.kernel == "search_compiler" else 2
+    # elif num_qubits == 5:
+    #     gate_size = 3
 
-        elif gate_size == 3:
-            gate_size = 2
+    # elif num_qubits == 4:
+    #     gate_size = 3 if args.kernel == "search_compiler" else 2
 
-        if args.verbosity >= 1:
-            print( "Compiling inner gates to size %d now." % gate_size )
+    # elif num_qubits == 3:
+    #     if args.kernel == "search_compiler":
+    #         target = target.astype( 'complex128' )
+    #         search_compile( [(0,1,2), target] )
+    #     gate_size = 2
 
-        new_circuit = []
+    # elif num_qubits == 2:
+    #     qiskit_kak_compile(  )
 
-        for link, gate in circuit:
-            gate_target  = get_projection_unitary( gate )
-            gate_target = gate_target.astype( 'complex64' )
-            gate_circuit = synthesize( gate_target, 1, args.layer_step, gate_size, args.verbose )
+    # elif num_qubits <= 1:
+    #     raise RuntimeError( "Only synthesizes circuits with >= 2 qubits." )
 
-            if args.refine:
-                gate_target = gate_target.astype( 'complex128' )
-                gate_circuit = refine_circuit( gate_target, gate_circuit, args.verbose )
+    # target = target.astype( 'complex64' )
+    # start = timer()
+    # circuit = synthesize( target, args.start_layer, args.layer_step, gate_size, args.verbose )
+    # end = timer()
+    # if args.verbose >= 1:
+    #     print( "Found circuit in %f seconds", end - start )
 
-            if args.test:
-                verify_circuit( gate_target, gate_circuit )
+    # if args.refine:
+    #     target = target.astype( 'complex128' )
+    #     start = timer()
+    #     circuit = refine_circuit( target, circuit, args.verbose )
+    #     end = timer()
+    #     if args.verbose >= 1:
+    #         print( "refined circuit in %f seconds", end - start )
 
-            for link2, gate2 in gate_circuit:
-                new_link = [ link[l] for l in link2 ]
-                new_gate = gate2
-                new_circuit.append( ( new_link, new_gate ) )
+    # if args.test:
+    #     verify_circuit( target, circuit )
 
-        circuit = new_circuit
+    # while ( gate_size > 3 or ( args.kernel == "qiskit_KAK" and gate_size > 2 ) ):
 
-        if args.test:
-            verify_circuit( target, circuit )
+    #     if gate_size == 5:
+    #         gate_size = 3
 
-    if args.kernel == "search_compiler":
-        search_compile( circuit )
+    #     elif gate_size == 4:
+    #         gate_size = 3 if args.kernel == "search_compiler" else 2
 
-    else:
-        qiskit_kak_compile( ... )
+    #     elif gate_size == 3:
+    #         gate_size = 2
+
+    #     if args.verbosity >= 1:
+    #         print( "Compiling inner gates to size %d now." % gate_size )
+
+    #     new_circuit = []
+
+    #     for link, gate in circuit:
+    #         gate_target  = get_projection_unitary( gate )
+    #         gate_target = gate_target.astype( 'complex64' )
+    #         gate_circuit = synthesize( gate_target, 1, args.layer_step, gate_size, args.verbose )
+
+    #         if args.refine:
+    #             gate_target = gate_target.astype( 'complex128' )
+    #             gate_circuit = refine_circuit( gate_target, gate_circuit, args.verbose )
+
+    #         if args.test:
+    #             verify_circuit( gate_target, gate_circuit )
+
+    #         for link2, gate2 in gate_circuit:
+    #             new_link = [ link[l] for l in link2 ]
+    #             new_gate = gate2
+    #             new_circuit.append( ( new_link, new_gate ) )
+
+    #     circuit = new_circuit
+
+    #     if args.test:
+    #         verify_circuit( target, circuit )
+
+    # if args.kernel == "search_compiler":
+    #     search_compile( circuit )
+
+    # else:
+    #     qiskit_kak_compile( ... )

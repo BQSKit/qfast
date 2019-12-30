@@ -91,6 +91,10 @@ def fixed_size_synthesize ( target, layer_count, gate_size, verbosity ):
                 loss = sess.run( [ train_op, loss_fn ] )[1]
 
             if loss < 0.02:
+
+                if verbosity >= 1:
+                    print( "Found circuit with loss: %f" % loss )
+
                 circuit = []
                 for l in layers:
                     circuit.append( ( l.get_link( sess ), l.get_gate_vals( sess ) ) )
@@ -250,6 +254,9 @@ def refine_circuit ( target, circuit, verbosity = 0 ):
                 # Plateau Detected
                 if max_value - min_value < 1e-3:
                     break
+
+        if verbosity >= 1:
+            print( "Refined circuit to %f error" % loss )
 
         new_circuit = []
         for l in layers:
