@@ -1,7 +1,6 @@
 import numpy           as np
 import argparse        as ap
 import scipy.linalg    as la
-import search_compiler as sc
 
 from timeit import default_timer as timer
 
@@ -34,23 +33,6 @@ def verify_circuit ( target, circuit ):
         assert( np.allclose( acm.conj().T @ acm, np.identity(2 ** num_qubits) ) )
 
     assert( hilbert_schmidt_distance( target, acm ) <= 0.03 )
-
-
-def search_compile ( circuit ):
-    compile_project = sc.Project( "__SC_Project__" )
-
-    for i, gate in enumerate( circuit ):
-        link, params = gate
-        gate_target  = get_projection_unitary( params )
-        name = str( i ) + "_" + str( link )
-        compile_project.add_compilation( name, gate_target )
-
-    compile_project.run()
-
-    for i, gate in enumerate( circuit ):
-        link, params = gate
-        name = str( i ) + "_" + str( link )
-        compile_project.assemble( name )
 
 
 def qiskit_kak_compile ( ):
@@ -95,7 +77,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     target = load_unitary( args.unitary_file )
-    target = target.astype( 'complex64' )
 
     num_qubits = int( np.log2( len( target ) ) )
 
@@ -105,15 +86,15 @@ if __name__ == "__main__":
     end = timer()
 
     if args.verbose >= 1:
-        print( "Found circuit in %f seconds" % end - start )
+        print( "Found circuit in %f seconds" % (end - start) )
 
     if args.refine:
-        target = target.astype( 'complex128' )
+        # target = target.astype( 'complex128' )
         start = timer()
         circuit = refine_circuit( target, circuit, args.verbose )
         end = timer()
         if args.verbose >= 1:
-            print( "refined circuit in %f seconds" % end - start )
+            print( "refined circuit in %f seconds" % (end - start) )
 
     with open( args.circ_file, "w" ) as f:
         f.write( str( circuit ) )

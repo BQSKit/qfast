@@ -1,6 +1,5 @@
 from .singlegatelayer import SingleGateLayer
 from .multigatelayer  import MultiGateLayer
-from .hardware_model  import HardwareModel
 from .synthesis       import synthesize
 from .synthesis       import hilbert_schmidt_distance
 from .synthesis       import fixed_size_synthesize

@@ -42,7 +42,8 @@ def hilbert_schmidt_distance ( X, Y ):
         return tf.sqrt( 1 - ( num / dem ) )
 
 
-def fixed_size_synthesize ( target, layer_count, gate_size, verbosity ):
+def fixed_size_synthesize ( target, layer_count, gate_size, verbosity,
+                            init_values = None ):
     """
     Attempts to synthesize the target unitary with a fixed number
     of gates of size gate_size.
@@ -67,9 +68,16 @@ def fixed_size_synthesize ( target, layer_count, gate_size, verbosity ):
 
     tf.reset_default_graph()
 
+    if init_values == None:
+        init_values = [ None ] * layer_count
+
+    while len( init_values ) < layer_count:
+        init_values.append( None )
+
     layers = [ MultiGateLayer( "Layer%d" % i, num_qubits,
                                gate_size = gate_size,
-                               parity = (i + 1) % 2 )
+                               parity = (i + 1) % 2,
+                               init_values = init_values[i] )
                for i in range( layer_count ) ]
 
     tensor = layers[0].get_unitary_tensor()
@@ -98,7 +106,7 @@ def fixed_size_synthesize ( target, layer_count, gate_size, verbosity ):
                 circuit = []
                 for l in layers:
                     circuit.append( ( l.get_link( sess ), l.get_gate_vals( sess ) ) )
-                return circuit
+                return ( True, circuit )
 
             loss_values.append( loss )
 
@@ -111,7 +119,7 @@ def fixed_size_synthesize ( target, layer_count, gate_size, verbosity ):
 
                 # Plateau Detected
                 if max_value - min_value < 0.001:
-                    return None
+                    return ( False, [ l.get_values( sess ) for l in layers ] )
 
             if len( loss_values ) > 1000:
                 min_value = np.min( loss_values[-1000:] )
@@ -119,7 +127,7 @@ def fixed_size_synthesize ( target, layer_count, gate_size, verbosity ):
 
                 # Plateau Detected
                 if max_value - min_value < 0.02:
-                    return None
+                    return ( False, [ l.get_values( sess ) for l in layers ] )
 
 
 def synthesize ( target, start_layer, layer_step, gate_size, verbosity = 0 ):
@@ -144,18 +152,24 @@ def synthesize ( target, start_layer, layer_step, gate_size, verbosity = 0 ):
     """
 
     layer_count = start_layer
+    init_values = [ None ] * layer_count
+
+    print( "Starting to search with %d layers" % layer_count )
 
     # Stride search over layer_count
     while ( True ):
-        circuit = fixed_size_synthesize( target, layer_count, gate_size, verbosity )
+        result = fixed_size_synthesize( target, layer_count, gate_size,
+                                        verbosity, init_values )
 
-        if circuit is not None:
+        if result[0]:
 
             if verbosity >= 1:
                 print( "Found a circuit with %d layers" % layer_count )
 
+            circuit = result[1]
             break
 
+        init_values  = result[1]
         layer_count += layer_step
 
         if verbosity >= 1:
@@ -170,14 +184,15 @@ def synthesize ( target, start_layer, layer_step, gate_size, verbosity = 0 ):
         if verbosity >= 1:
             print( "Removing a layer, now: %d layers" % layer_count )
 
-        circuit = fixed_size_synthesize( target, layer_count, gate_size, verbosity )
+        result = fixed_size_synthesize( target, layer_count, gate_size,
+                                        verbosity, init_values )
 
-        if circuit is not None:
+        if result[0]:
 
             if verbosity >= 1:
                 print( "Found a circuit with %d layers" % layer_count )
 
-            found_circuit = circuit
+            found_circuit = result[1]
 
         elif circuit is None:
             break

@@ -39,11 +39,12 @@ class MultiGateLayer():
         if gate_size > num_qubits:
             raise ValueError( "Gate Size must be <= to number of qubits." )
 
-        self.name       = name
-        self.num_qubits = num_qubits
-        self.gate_size  = gate_size
-        self.topology   = list( it.combinations( range( self.num_qubits ),
-                                                 self.gate_size ) )
+        self.name        = name
+        self.num_qubits  = num_qubits
+        self.gate_size   = gate_size
+        self.init_values = init_values
+        self.topology    = list( it.combinations( range( self.num_qubits ),
+                                                  self.gate_size ) )
 
         if parity == 0:
             self.topology = self.topology[:len(self.topology)//2]
@@ -53,7 +54,7 @@ class MultiGateLayer():
         self.num_link_vars = len( self.topology )
         self.num_gate_vars = 4 ** self.gate_size
 
-        if init_values is None:
+        if self.init_values is None:
             self.init_values = ( [0] * self.num_link_vars ) + \
                                ( [np.sqrt( self.num_gate_vars ** -1 )] *
                                  self.num_gate_vars )
@@ -64,12 +65,12 @@ class MultiGateLayer():
         # Construct layer
         with tf.variable_scope( self.name ):
 
-            self.variables = [ tf.Variable( val, dtype = tf.float32 )
+            self.variables = [ tf.Variable( val, dtype = tf.float64 )
                                for val in self.init_values ]
 
             self.link_vars = self.variables[:self.num_link_vars]
             self.gate_vars = self.variables[self.num_link_vars:]
-            self.cast_vars = [ tf.cast( x, tf.complex64 ) for x in self.gate_vars ]
+            self.cast_vars = [ tf.cast( x, tf.complex128 ) for x in self.gate_vars ]
 
             self.tensors = []
 
@@ -81,9 +82,9 @@ class MultiGateLayer():
 
             link_exps = [ tf.exp( 500 * var )
                           for var in self.link_vars ]
-            sum_exp = tf.reduce_sum( link_exps ) + 1e-16
+            sum_exp = tf.reduce_sum( link_exps ) + 1e-8
             self.softmax = [ link_exp / sum_exp for link_exp in link_exps ]
-            self.cast_max = [ tf.cast( softmax_var, tf.complex64 )
+            self.cast_max = [ tf.cast( softmax_var, tf.complex128 )
                               for softmax_var in self.softmax ]
             self.layer = tf.reduce_sum( [
                                         softvar * gate
