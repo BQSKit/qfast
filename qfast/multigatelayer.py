@@ -9,7 +9,7 @@ import scipy.linalg as la
 import tensorflow as tf
 import itertools as it
 
-from .pauli import *
+from pauli import *
 
 
 class MultiGateLayer():

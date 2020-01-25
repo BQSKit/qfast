@@ -4,6 +4,7 @@ import scipy.linalg    as la
 
 from timeit import default_timer as timer
 
+from qfast import Block, Circuit
 from qfast import synthesize, refine_circuit, hilbert_schmidt_distance
 from qfast import get_norder_paulis, pauli_dot_product, get_pauli_n_qubit_projection
 
@@ -74,30 +75,38 @@ if __name__ == "__main__":
     parser.add_argument( "-v", "--verbose", action = "count", default = 0,
                          help = "Verbose printouts" )
 
+
     args = parser.parse_args()
 
     target = load_unitary( args.unitary_file )
 
-    num_qubits = int( np.log2( len( target ) ) )
+    x = Circuit( target )
+    # print( x.blocks )
+    qasm = x.synthesize( 2 )
+    with open( args.circ_file, 'w' ) as f:
+        f.write( qasm )
+    # print( x.blocks )
 
-    start = timer()
-    circuit = synthesize( target, args.start_layer, args.layer_step,
-                          args.block_size, args.verbose )
-    end = timer()
+    # num_qubits = int( np.log2( len( target ) ) )
 
-    if args.verbose >= 1:
-        print( "Found circuit in %f seconds" % (end - start) )
+    # start = timer()
+    # circuit = synthesize( target, args.start_layer, args.layer_step,
+    #                       args.block_size, args.verbose )
+    # end = timer()
 
-    if args.refine:
-        # target = target.astype( 'complex128' )
-        start = timer()
-        circuit = refine_circuit( target, circuit, args.verbose )
-        end = timer()
-        if args.verbose >= 1:
-            print( "refined circuit in %f seconds" % (end - start) )
+    # if args.verbose >= 1:
+    #     print( "Found circuit in %f seconds" % (end - start) )
 
-    with open( args.circ_file, "w" ) as f:
-        f.write( str( circuit ) )
+    # if args.refine:
+    #     # target = target.astype( 'complex128' )
+    #     start = timer()
+    #     circuit = refine_circuit( target, circuit, args.verbose )
+    #     end = timer()
+    #     if args.verbose >= 1:
+    #         print( "refined circuit in %f seconds" % (end - start) )
+
+    # with open( args.circ_file, "w" ) as f:
+    #     f.write( str( circuit ) )
 
     # if num_qubits >= 8:
     #     gate_size = 5 if args.kernel == "search_compiler" else 4

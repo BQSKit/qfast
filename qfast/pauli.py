@@ -110,3 +110,67 @@ def pauli_dot_product ( alpha, sigma ):
         raise ValueError( "Length of alpha and sigma must be the same." )
 
     return np.sum( [ a*s for a, s in zip( alpha, sigma ) ], 0 )
+
+
+def get_unitary_from_pauli_coefs ( pauli_coefs ):
+    """
+    Convert a pauli expansion to a unitary matrix.
+
+    Args:
+        pauli_coefs (List[float]): Coefficient of Pauli matrices in linear comb.
+
+    Returns:
+        U (np.array) Unitary Matrix computed from the Pauli coefficients.
+    """
+
+    num_qubits = int( np.log2( len( pauli_coefs ) ) / 2 )
+    sigma = get_norder_paulis( num_qubits )
+    alpha = pauli_coefs
+    H = pauli_dot_product( alpha, sigma )
+    return scipy.linalg.expm( 1j * H )
+
+
+def unitary_log_no_i ( U ):
+    """
+    Solves for H in U = e^{iH}
+
+    Args:
+        U (np.array): The unitary to decompose
+
+    Returns:
+        H where e^{iH} = U
+    """
+
+    if not np.allclose( U.conj().T @ U, np.identity( len( U ) ) ) or \
+       not np.allclose( U @ U.conj().T, np.identity( len( U ) ) ):
+        raise ValueError( "U must be a unitary matrix." )
+
+    T, Z = scipy.linalg.schur( U, output = 'complex' )
+    assert( np.allclose( Z @ T @ Z.conj().T, U ) )
+    H = np.diag( np.log( np.diagonal( T ) ) )
+    H = -1j*H
+    H = np.matmul( np.matmul( Z, H ), Z.conj().T )
+    return H
+
+
+def pauli_expansion ( H ):
+    """
+    Computes a Pauli expansion of the hermitian matrix H.
+
+    Args:
+        H (np.array): The hermitian matrix
+
+    Returns:
+        X (list of floats): The coefficients of a Pauli expansion for H,
+                            i.e., X dot Sigma = H where Sigma is
+                            Pauli matrices of same size of H.
+    """
+
+    # Change basis of H to Pauli Basis (solve for coefficients -> X)
+    n = int( np.log2( len( H ) ) )
+    paulis = get_norder_paulis( n )
+    flatten_paulis = [ np.reshape( pauli, (4**n) ) for pauli in paulis ]
+    flatten_H      = np.reshape( H, (4**n) )
+    A = np.stack( flatten_paulis, axis = -1 )
+    X = np.real( np.matmul( np.linalg.inv( A ), flatten_H ) )
+    return X

@@ -7,3 +7,7 @@ from .synthesis       import refine_circuit
 from .pauli           import get_norder_paulis
 from .pauli           import get_pauli_n_qubit_projection
 from .pauli           import pauli_dot_product
+from .block           import Block
+from .circuit         import Circuit
+from .pauli           import pauli_expansion
+from .pauli           import unitary_log_no_i

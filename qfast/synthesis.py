@@ -5,8 +5,8 @@ This module implements the main synthesize function.
 import tensorflow as tf
 import numpy      as np
 
-from .singlegatelayer import SingleGateLayer
-from .multigatelayer import MultiGateLayer
+from singlegatelayer import SingleGateLayer
+from multigatelayer import MultiGateLayer
 
 
 def hilbert_schmidt_distance ( X, Y ):
