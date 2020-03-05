@@ -98,7 +98,7 @@ def fixed_size_synthesize ( target, layer_count, gate_size, verbosity,
             for i in range( 20 ):
                 loss = sess.run( [ train_op, loss_fn ] )[1]
 
-            if loss < 0.02:
+            if loss < 0.01:
 
                 if verbosity >= 1:
                     print( "Found circuit with loss: %f" % loss )
@@ -121,12 +121,12 @@ def fixed_size_synthesize ( target, layer_count, gate_size, verbosity,
                 if max_value - min_value < 0.001:
                     return ( False, [ l.get_values( sess ) for l in layers ] )
 
-            if len( loss_values ) > 1000:
+            if len( loss_values ) > 800:
                 min_value = np.min( loss_values[-1000:] )
                 max_value = np.max( loss_values[-1000:] )
 
                 # Plateau Detected
-                if max_value - min_value < 0.02:
+                if max_value - min_value < 0.01:
                     return ( False, [ l.get_values( sess ) for l in layers ] )
 
 

@@ -100,4 +100,4 @@ class Circuit():
         return circ.qasm()
 
     def universalq_decomp ( self ):
-        pass
+        return self.blocks
