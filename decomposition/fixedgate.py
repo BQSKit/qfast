@@ -1,7 +1,7 @@
 """
-This module implements the MultiGateLayer Class.
+This module implements the FixedGate Class.
 
-A MultiGateLayer represents one arbitrary n-qubit gate on one qubit tuple.
+A FixedGate represents a gate with fixed location and unbound funciton.
 """
 
 import numpy as np
@@ -11,14 +11,14 @@ import tensorflow as tf
 from pauli import *
 
 
-class SingleGateLayer():
+class FixedGate():
     """
-    The SingleGateLayer Layer Class.
+    The FixedGate Class.
     """
 
     def __init__ ( self, name, num_qubits, gate_size, link, init_values = None ):
         """
-        SingleGateLayer Class Constructor
+        FixedGate Class Constructor
 
         Args:
             name (str): The name of the layer
@@ -27,7 +27,7 @@ class SingleGateLayer():
 
             gate_size (int): The size of the gates
 
-            link (Tuple[int]) The qubits this gate acts on
+            link (Tuple[int]) The qubits this gate acts on (location)
 
             init_values (List[float]): Initial values for the layer
         """

@@ -8,9 +8,9 @@ import numpy as np
 
 from timeit import default_timer as timer
 
-from pauli import get_unitary_from_pauli_coefs
-from pauli import unitary_log_no_i, pauli_expansion
-from synthesis import synthesize, refine_circuit
+from .pauli import get_unitary_from_pauli_coefs
+from .pauli import unitary_log_no_i, pauli_expansion
+from .synthesis import synthesize, refine_circuit
 
 
 class Block():

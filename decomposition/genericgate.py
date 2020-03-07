@@ -1,7 +1,7 @@
 """
-This module implements the MultiGateLayer Class.
+This module implements the GenericGate Class.
 
-A MultiGateLayer represents one arbitrary n-qubit gate on any qubit tuple.
+A GenericGate represents a gate with arbitrary location and function.
 """
 
 import numpy as np
@@ -12,15 +12,15 @@ import itertools as it
 from pauli import *
 
 
-class MultiGateLayer():
+class GenericGate():
     """
-    The MultiGateLayer Class.
+    The GenericGate Class.
     """
 
     def __init__ ( self, name, num_qubits, gate_size,
                    init_values = None, parity = None ):
         """
-        MultiGateLayer Class Constructor
+        GenericGate Class Constructor
 
         Args:
             name (str): The name of the layer
