@@ -29,7 +29,7 @@ class Circuit():
         self.num_qubits = int( np.log2( len( utry ) ) )
         self.blocks = [ Block( self.utry, list( range( self.num_qubits ) ) ) ]
 
-    def decompose ( self, native_block_size ):
+    def decompose ( self, native_block_size, **kwargs ):
         """
         Decomposition breaks down the circuit into blocks of at most
         native_block_size size.
@@ -49,7 +49,7 @@ class Circuit():
                 if block.size <= native_block_size:
                     new_block_list.append( block )
                 else:
-                    new_block_list += block.decompose()
+                    new_block_list += block.decompose( kwargs )
 
             self.blocks = new_block_list
 

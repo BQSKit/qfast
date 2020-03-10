@@ -1,7 +1,7 @@
 """
 This module implements the Block Class.
 
-A block is a unitary and a link location
+A block is a unitary operation applied to a set of qubits.
 """
 
 import numpy as np
@@ -50,38 +50,73 @@ class Block():
         self.link = link
         self.size = len( link )
 
-    def decompose ( self, verbosity = 0 ):
+    def decompose ( self, **kwargs ):
 
         if self.size <= 2:
             return self
 
-        gate_size = int( np.ceil( self.size / 2 ) )
+        params["start_depth" ] = 1
+        params["depth_step" ] = 1
+        params["exploration_distance" ] = 0.01
+        params["exploration_learning_rate" ] = 0.01
+        params["refinement_distance" ] = 1e-7
+        params["refinement_learning_rate" ] = 1e-6
+        params.update( kwargs )
 
-        # Synthesize
-        start = timer()
-        circ_as_paulis = synthesize( self.utry, 1, 1, gate_size, verbosity )
-        end = timer()
+        gate_size = self.get_decomposition_size()
 
-        if verbosity >= 1:
-            print( "Found circuit in %f seconds" % (end - start) )
+        # Explore
+        fun_vals, loc_vals = exploration( self.utry, self.size, gate_size,
+                                          params["start_depth"],
+                                          params["depth_step"],
+                                          params["exploration_distance"],
+                                          params["exploration_learning_rate"] )
+
+        loc_fixed = fix_locations( loc_vals, gate_size )
+
+        # if verbosity >= 1:
+        #     print( "Found circuit in %f seconds" % (end - start) )
 
         # Refine
-        start = timer()
-        circ_as_paulis = refine_circuit( self.utry, circ_as_paulis, verbosity )
-        end = timer()
+        fun_vals = refinement( self.utry, self.size, gate_size,
+                               fun_vals, loc_vals,
+                               params["refinement_distance"],
+                               params["refinement_learning_rate"] )
 
-        if verbosity >= 1:
-            print( "Refined circuit in %f seconds" % (end - start) )
+        # if verbosity >= 1:
+            # print( "Refined circuit in %f seconds" % (end - start) )
 
         # Piece Together
         block_list = []
 
-        for link, params in circ_as_paulis:
+        for loc, fun_params in zip( loc_fixed, fun_vals ):
             gate_utry = get_unitary_from_pauli_coefs( params )
             mapped_link = tuple( [ self.link[i] for i in link ] )
             block_list.append( Block( gate_utry, mapped_link ) )
 
         return block_list
+
+    def get_decomposition_size ( self ):
+        return int( np.ceil( self.size / 2 ) )
+
+    def fix_locations ( self, loc_vals, gate_size ):
+        # This is bad programing since it's duplicated code
+        # from different parts of the program and is more or less a hack
+        # TODO: write a HardwareModel class that models a target
+        # hardware architecture and can be queried for this and
+        # other information.
+        loc_fixed = []
+        topology = list( it.combinations( range( self.size ), gate_size ) )
+
+        for i, loc_val in enumerate( loc_vals ):
+            loc_idx = np.argmax( loc_val )
+            parity = (i + 1) % 2
+            if parity == 0:
+                loc_fixed.append( topology[:len(topology)//2][loc_idx] )
+            elif parity == 1:
+                loc_fixed.append( topology[len(topology)//2:][loc_idx] )
+
+        return loc_fixed
 
     def get_pauli_params ( self ):
         return pauli_expansion( unitary_log_no_i( self.utry ) )
