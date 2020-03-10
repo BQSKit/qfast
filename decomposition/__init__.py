@@ -1,5 +1,5 @@
-from .singlegatelayer import SingleGateLayer
-from .multigatelayer  import MultiGateLayer
+from .fixedgate import FixedGate
+from .genericgate  import GenericGate
 from .synthesis       import synthesize
 from .synthesis       import hilbert_schmidt_distance
 from .synthesis       import fixed_size_synthesize

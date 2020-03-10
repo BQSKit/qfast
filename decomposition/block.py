@@ -50,7 +50,7 @@ class Block():
         self.link = link
         self.size = len( link )
 
-    def synthesize ( self, verbosity = 0 ):
+    def decompose ( self, verbosity = 0 ):
 
         if self.size <= 2:
             return self
