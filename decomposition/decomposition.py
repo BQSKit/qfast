@@ -5,8 +5,85 @@ This module implements the main decomposition functions.
 import tensorflow as tf
 import numpy      as np
 
-from decomposition import FixedGate, GenericGate
-from tools import hilbert_schmidt_distance
+from decomposition import FixedGate, GenericGate, Block
+from tools import hilbert_schmidt_distance, get_unitary_from_pauli_coefs
+
+
+def decomposition ( block, **kwargs ):
+    """
+    Decomposes a Block into a sequence of smaller blocks which
+    implement the input.
+
+    Args:
+        block (Block): Target Block
+
+    Keyword Args:
+        start_depth (int): The number of gates to start exploring from
+
+        depth_step (int): The number of added gates in each
+                          exploration step
+
+        exploration_distance (float): Exploration's goal distance
+
+        exploration_learning_rate (float): Learning rate of
+                                           exploration's optimizer
+
+        refinement_distance (float): Refinement's goal distance
+
+        refinement_learning_rate (float): Learning rate of refinement's
+                                          optimizer
+
+    Returns:
+        (List[Block]): Decomposed blocks
+    """
+
+    if block.num_qubits <= 2:
+        return [ block ]
+
+    params["start_depth" ] = 1
+    params["depth_step" ] = 1
+    params["exploration_distance" ] = 0.01
+    params["exploration_learning_rate" ] = 0.01
+    params["refinement_distance" ] = 1e-7
+    params["refinement_learning_rate" ] = 1e-6
+    params.update( kwargs )
+
+    gate_size = get_decomposition_size()
+
+    fun_vals, loc_vals = exploration( block.utry, block.num_qubits, gate_size,
+                                      params["start_depth"],
+                                      params["depth_step"],
+                                      params["exploration_distance"],
+                                      params["exploration_learning_rate"] )
+
+    loc_fixed = fix_locations( block.num_qubits, gate_size, loc_vals )
+
+    fun_vals = refinement( block.utry, block.num_qubits, gate_size,
+                           fun_vals, loc_vals,
+                           params["refinement_distance"],
+                           params["refinement_learning_rate"] )
+
+    return convert_to_block_list( block.link, fun_vals, loc_fixed )
+
+
+def get_decomposition_size ( num_qubits ):
+    """
+    Given a block size, computes the block size to decompose to
+
+    Args:
+        num_qubits (int): Number of qubits in block
+
+    Returns:
+        (int): Decomposed block size
+    """
+
+    if not isinstance( num_qubits, int ):
+        raise TypeError( "Input must be an integer." )
+
+    if num_qubits <= 0:
+        raise ValueError( "Number of qubits must be positive." )
+
+    return int( np.ceil( num_qubits / 2 ) )
 
 
 def fixed_depth_exploration ( target, num_qubits, gate_size, gate_fun_vals,
@@ -100,7 +177,8 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, gate_fun_vals,
 def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
                   exploration_distance = 0.01, learning_rate = 0.01 ):
     """
-    Synthesizes a circuit that implements the target unitary.
+    Synthesizes a circuit that implements the target unitary. Explores
+    both circuit structure (gate location) and gate functions.
 
     Args:
         target (np.ndarray): Target unitary
@@ -180,10 +258,49 @@ def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
     return found_gate_fun_vals, found_gate_loc_vals
 
 
+def fix_locations ( num_qubits, gate_size, loc_vals ):
+    """
+    Fixes the locations; used when converting from generic gates to
+    fixed gates.
+
+    Args:
+        num_qubits (int): Total number of qubits
+
+        gate_size (int): The size of the gates
+
+        loc_vals (List[List[float]]): Gate unfixed location values
+
+    Returns:
+        (List[Tuple[int]]): Fixed locations
+
+    Note:
+        This is bad programing since it's duplicated code
+        from different parts of the program and is more or less a hack
+        TODO: write a HardwareModel class that models a target
+        hardware architecture and can be queried for this and
+        other information.
+    """
+
+    loc_fixed = []
+    topology = list( it.combinations( range( num_qubits ), gate_size ) )
+
+    for i, loc_val in enumerate( loc_vals ):
+        loc_idx = np.argmax( loc_val )
+        parity = (i + 1) % 2
+        if parity == 0:
+            loc_fixed.append( topology[:len(topology)//2][loc_idx] )
+        elif parity == 1:
+            loc_fixed.append( topology[len(topology)//2:][loc_idx] )
+
+    return loc_fixed
+
+
 def refinement ( target, num_qubits, gate_size, gate_fun_vals, gate_locs_fixed,
                  refinement_distance = 1e-7, learning_rate = 1e-6 ):
     """
-    Refines circuit's distance with FixedGates instead of GenericGates.
+    Refines synthesized circuit to better implement the target unitary.
+    This is achieved by using fixed circuit structure (gate location)
+    and a more fine-grained optimizer.
 
     Args:
         target (np.ndarray): Target unitary
@@ -256,3 +373,35 @@ def refinement ( target, num_qubits, gate_size, gate_fun_vals, gate_locs_fixed,
         #     print( "Refined circuit to %f error" % loss )
 
         return [ l.get_fun_vals( sess ) for l in layers ]
+
+
+def convert_to_block_list ( link, fun_vals, loc_fixed ):
+    """
+    Converts the function parameters to unitary matrices and composes
+    location into a larger circuit. Returns the resulting block list.
+
+    Args:
+        link (Tuple[int]): The link in a larger circuit that this
+                           circuit corresponds to.
+
+        fun_vals (List[List[float]]): Gate function values
+
+        locs_fixed (List[Tuple[int]]): Gate locations
+
+    Returns:
+        (List[Block]): Resulting block list
+    """
+
+    block_list = []
+
+    for loc, fun_params in zip( loc_fixed, fun_vals ):
+
+        # Convert to unitary
+        utry = get_unitary_from_pauli_coefs( params )
+
+        # Compose location
+        link = tuple( [ block.link[i] for i in link ] )
+
+        block_list.append( Block( utry, link ) )
+
+    return block_list
