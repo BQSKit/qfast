@@ -1,15 +1,15 @@
 """
 This module implements the GenericGate Class.
 
-A GenericGate represents a gate with arbitrary location and function.
+A GenericGate represents a gate with variable location and function.
 """
 
-import numpy as np
+import tensorflow   as tf
+import numpy        as np
 import scipy.linalg as la
-import tensorflow as tf
-import itertools as it
+import itertools    as it
 
-from pauli import *
+from tools import get_pauli_n_qubit_projection
 
 
 class GenericGate():
@@ -17,8 +17,8 @@ class GenericGate():
     The GenericGate Class.
     """
 
-    def __init__ ( self, name, num_qubits, gate_size, fun_values = None,
-                   loc_values = None, parity = None ):
+    def __init__ ( self, name, num_qubits, gate_size, fun_vals = None,
+                   loc_vals = None, parity = None ):
         """
         GenericGate Class Constructor.
 
@@ -29,15 +29,15 @@ class GenericGate():
 
             gate_size (int): The size of the gate
 
-            fun_values (List[float]): Initial values for the
-                                      gate's function
+            fun_vals (List[float]): Initial values for the
+                                    gate's function
 
-            loc_values (List[float]): Initial values for the
-                                      gate's location
+            loc_vals (List[float]): Initial values for the
+                                    gate's location
 
             parity (int): The side of the topology to occupy. Can be
                           either 0 or 1; prevents consecutive gates
-                          from choosing the same loc
+                          from choosing the same location
         """
 
         if gate_size > num_qubits:
@@ -46,8 +46,8 @@ class GenericGate():
         self.name       = name
         self.num_qubits = num_qubits
         self.gate_size  = gate_size
-        self.loc_values = loc_values
-        self.fun_values = fun_values
+        self.loc_vals   = loc_vals
+        self.fun_vals   = fun_vals
         self.topology   = list( it.combinations( range( self.num_qubits ),
                                                  self.gate_size ) )
 
@@ -59,43 +59,45 @@ class GenericGate():
         self.num_loc_vars = len( self.topology )
         self.num_fun_vars = 4 ** self.gate_size
 
-        if self.fun_values is None:
-            self.fun_values = [np.sqrt( self.num_fun_vars ** -1 )] *
-                               self.num_fun_vars
+        if self.fun_vals is None:
+            self.fun_vals = [ np.sqrt( self.num_fun_vars ** -1 ) ] * \
+                              self.num_fun_vars
 
-        if self.loc_values is None:
-            self.loc_values = [0] * self.num_loc_vars
+        if self.loc_vals is None:
+            self.loc_vals = [0] * self.num_loc_vars
 
-        if len( self.fun_values ) != self.num_fun_vars:
+        if len( self.fun_vals ) != self.num_fun_vars:
             raise ValueError( "Incorrect number of function values." )
 
-        if len( self.loc_values ) != self.num_loc_vars:
+        if len( self.loc_vals ) != self.num_loc_vars:
             raise ValueError( "Incorrect number of location values." )
 
         # Construct Tensor
         with tf.variable_scope( self.name ):
 
             self.fun_vars = [ tf.Variable( val, dtype = tf.float64 )
-                              for val in self.fun_values ]
+                              for val in self.fun_vals ]
 
             self.loc_vars = [ tf.Variable( val, dtype = tf.float64 )
-                              for val in self.loc_values ]
+                              for val in self.loc_vals ]
 
             self.cast_vars = [ tf.cast( x, tf.complex128 )
                                for x in self.fun_vars ]
 
-            self.tensors = []
+            gates = []
 
-            for link in self.topology:
-                paulis = get_pauli_n_qubit_projection( self.num_qubits, link )
+            for location in self.topology:
+                paulis = get_pauli_n_qubit_projection( self.num_qubits,
+                                                       location )
+
                 H = tf.reduce_sum( [ var * pauli for var, pauli
                                      in zip( self.cast_vars, paulis ) ], 0 )
-                self.tensors.append( H )
 
-            loc_exps = [ tf.exp( 500 * var )
-                         for var in self.loc_vars ]
+                gates.append( H )
 
-            sum_exp = tf.reduce_sum( loc_exps ) + 1e-8
+            loc_exps = [ tf.exp( 500 * var ) for var in self.loc_vars ]
+
+            sum_exp = tf.reduce_sum( loc_exps ) + 1e-15
 
             self.softmax = [ loc_exp / sum_exp for loc_exp in loc_exps ]
 
@@ -104,7 +106,7 @@ class GenericGate():
 
             self.herm = tf.reduce_sum( [ softvar * gate
                                          for softvar, gate
-                                         in zip( self.cast_max, self.tensors )
+                                         in zip( self.cast_max, gates )
                                        ], 0 )
 
             self.gate = tf.linalg.expm( 1j  * self.herm )
@@ -137,9 +139,9 @@ class GenericGate():
         loc_idx = np.argmax( sess.run( self.loc_vars ) )
         return self.topology[ loc_idx ]
 
-    # def get_unitary ( self, sess ):
-    #     loc = self.get_location( sess )
-    #     unitary_params = self.get_gate_vals( sess )
-    #     paulis = get_pauli_n_qubit_projection( self.num_qubits, loc )
-    #     H = np.sum( [ u*p for u, p in zip( unitary_params, paulis ) ], 0 )
-    #     return la.expm( 1j * H )
+    def get_unitary ( self, sess ):
+        location = self.get_location( sess )
+        fun_params = self.get_fun_vals( sess )
+        paulis = get_pauli_n_qubit_projection( self.num_qubits, location )
+        H = np.sum( [ a*p for a, p in zip( fun_params, paulis ) ], 0 )
+        return la.expm( 1j * H )

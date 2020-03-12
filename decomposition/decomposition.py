@@ -40,6 +40,7 @@ def decomposition ( block, **kwargs ):
     if block.num_qubits <= 2:
         return [ block ]
 
+    params = {}
     params["start_depth" ] = 1
     params["depth_step" ] = 1
     params["exploration_distance" ] = 0.01
@@ -59,11 +60,11 @@ def decomposition ( block, **kwargs ):
     loc_fixed = fix_locations( block.num_qubits, gate_size, loc_vals )
 
     fun_vals = refinement( block.utry, block.num_qubits, gate_size,
-                           fun_vals, loc_vals,
+                           fun_vals, loc_fixed,
                            params["refinement_distance"],
                            params["refinement_learning_rate"] )
 
-    return convert_to_block_list( block.link, fun_vals, loc_fixed )
+    return convert_to_block_list( block.get_location(), fun_vals, loc_fixed )
 
 
 def get_decomposition_size ( num_qubits ):
@@ -86,8 +87,91 @@ def get_decomposition_size ( num_qubits ):
     return int( np.ceil( num_qubits / 2 ) )
 
 
-def fixed_depth_exploration ( target, num_qubits, gate_size, gate_fun_vals,
-                              gate_loc_vals, exploration_distance = 0.01,
+def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
+                  exploration_distance = 0.01, learning_rate = 0.01 ):
+    """
+    Synthesizes a circuit that implements the target unitary. Explores
+    both circuit structure (gate location) and gate functions.
+
+    Args:
+        target (np.ndarray): Target unitary
+
+        num_qubits (int): The target unitary's number of qubits
+
+        gate_size (int): number of active qubits in a gate
+
+        start_depth (int): The number of gates to start searching from
+
+        depth_step (int): The number of added gates in each step
+
+        exploration_distance (float): Exploration's goal distance
+
+        learning_rate (float): Learning rate of the optimizer
+
+    Returns:
+        (Tuple[List[List[float]], List[List[float]]]):
+            The final fun_vals and loc_vals
+    """
+
+    depth = start_depth
+    fun_vals = [ None ] * depth
+    loc_vals = [ None ] * depth
+
+    # print( "Starting to search with %d layers" % layer_count )
+
+    # Stride search over layer_count
+    while ( True ):
+        result = fixed_depth_exploration( target, num_qubits, gate_size,
+                                          fun_vals, loc_vals,
+                                          exploration_distance, learning_rate )
+
+        success, fun_vals, loc_vals = result
+
+        if success:
+
+            # if verbosity >= 1:
+            #     print( "Found a circuit with %d layers" % layer_count )
+
+            # circuit = result[1]
+            break
+
+        fun_vals += [ None ] * depth_step
+        loc_vals += [ None ] * depth_step
+        depth += depth_step
+
+        # if verbosity >= 1:
+        #     print( "Added a layer, now: %d layers" % layer_count )
+
+    # Remember good results
+    found_fun_vals = fun_vals
+    found_loc_vals = loc_vals
+
+    # Search backwards for a shorter circuit
+    for i in range( depth_step - 1 ):
+        depth -= 1
+
+        # if verbosity >= 1:
+        #     print( "Removing a layer, now: %d layers" % layer_count )
+
+        result = fixed_depth_exploration( target, num_qubits, gate_size,
+                                          fun_vals, loc_vals,
+                                          exploration_distance, learning_rate )
+
+        success, fun_vals, loc_vals = result
+
+        if success:
+
+            # if verbosity >= 1:
+            #     print( "Found a circuit with %d layers" % layer_count )
+
+            found_fun_vals = fun_vals
+            found_loc_vals = loc_vals
+
+    return found_fun_vals, found_loc_vals
+
+
+def fixed_depth_exploration ( target, num_qubits, gate_size, fun_vals,
+                              loc_vals, exploration_distance = 0.01,
                               learning_rate = 0.01 ):
     """
     Attempts to synthesize the target unitary with a fixed number
@@ -100,9 +184,9 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, gate_fun_vals,
 
         gate_size (int): number of active qubits in a gate
 
-        gate_fun_vals (List[List[float]]): Gate function values
+        fun_vals (List[List[float]]): Gate function values
 
-        gate_loc_vals (List[List[float]]): Gate location values
+        loc_vals (List[List[float]]): Gate location values
 
         exploration_distance (float): Exploration's goal distance
 
@@ -111,15 +195,15 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, gate_fun_vals,
     Returns:
         (Tuple[bool, List[List[float]], List[List[float]]]):
             True if succeeded in hitting exploration distance
-            and the final gate_fun_vals and gate_loc_vals
+            and the final fun_vals and loc_vals
     """
 
     tf.reset_default_graph()
 
     layers = [ GenericGate( "Gate%d" % i, num_qubits, gate_size,
-                            gate_fun_vals[i], gate_loc_vals[i],
+                            fun_vals[i], loc_vals[i],
                             parity = (i + 1) % 2 )
-               for i in range( len( gate_fun_vals ) ) ]
+               for i in range( len( fun_vals ) ) ]
 
     tensor = layers[0].get_tensor()
     for layer in layers[1:]:
@@ -174,90 +258,6 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, gate_fun_vals,
                              [ l.get_loc_vals( sess ) for l in layers ] )
 
 
-def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
-                  exploration_distance = 0.01, learning_rate = 0.01 ):
-    """
-    Synthesizes a circuit that implements the target unitary. Explores
-    both circuit structure (gate location) and gate functions.
-
-    Args:
-        target (np.ndarray): Target unitary
-
-        num_qubits (int): The target unitary's number of qubits
-
-        gate_size (int): number of active qubits in a gate
-
-        start_depth (int): The number of gates to start searching from
-
-        depth_step (int): The number of added gates in each step
-
-        exploration_distance (float): Exploration's goal distance
-
-        learning_rate (float): Learning rate of the optimizer
-
-    Returns:
-        (Tuple[List[List[float]], List[List[float]]]):
-            The final gate_fun_vals and gate_loc_vals
-    """
-
-    depth = start_depth
-    gate_fun_vals = [ None ] * depth
-    gate_loc_vals  = [ None ] * depth
-
-    print( "Starting to search with %d layers" % layer_count )
-
-    # Stride search over layer_count
-    while ( True ):
-        result = fixed_depth_exploration( target, num_qubits, gate_size,
-                                          gate_fun_vals, gate_loc_vals,
-                                          exploration_distance, learning_rate )
-
-        success, gate_fun_vals, gate_loc_vals = result
-
-        if success:
-
-            # if verbosity >= 1:
-            #     print( "Found a circuit with %d layers" % layer_count )
-
-            # circuit = result[1]
-            break
-
-        gate_fun_vals += [ None ] * depth_step
-        gate_loc_vals  += [ None ] * depth_step
-        depth += depth_step
-
-        # if verbosity >= 1:
-        #     print( "Added a layer, now: %d layers" % layer_count )
-
-    # Remember good results
-    found_gate_fun_vals = gate_fun_vals
-    found_gate_loc_vals  = gate_loc_vals
-
-    # Search backwards for a shorter circuit
-    for i in range( depth_step - 1 ):
-        depth -= 1
-
-        # if verbosity >= 1:
-        #     print( "Removing a layer, now: %d layers" % layer_count )
-
-        result = fixed_depth_exploration( target, num_qubits, gate_size,
-                                          gate_fun_vals, gate_loc_vals,
-                                          exploration_distance, learning_rate )
-
-        success, gate_fun_vals, gate_loc_vals = result
-
-        if success:
-
-            # if verbosity >= 1:
-            #     print( "Found a circuit with %d layers" % layer_count )
-
-            found_gate_fun_vals = gate_fun_vals
-            found_gate_loc_vals  = gate_loc_vals
-
-
-    return found_gate_fun_vals, found_gate_loc_vals
-
-
 def fix_locations ( num_qubits, gate_size, loc_vals ):
     """
     Fixes the locations; used when converting from generic gates to
@@ -295,7 +295,7 @@ def fix_locations ( num_qubits, gate_size, loc_vals ):
     return loc_fixed
 
 
-def refinement ( target, num_qubits, gate_size, gate_fun_vals, gate_locs_fixed,
+def refinement ( target, num_qubits, gate_size, fun_vals, loc_fixed,
                  refinement_distance = 1e-7, learning_rate = 1e-6 ):
     """
     Refines synthesized circuit to better implement the target unitary.
@@ -309,9 +309,9 @@ def refinement ( target, num_qubits, gate_size, gate_fun_vals, gate_locs_fixed,
 
         gate_size (int): number of active qubits in a gate
 
-        gate_fun_vals (List[List[float]]): Gate function values
+        fun_vals (List[List[float]]): Gate function values
 
-        gate_locs_fixed (List[Tuple[int]]): Gate locations
+        loc_fixed (List[Tuple[int]]): Gate locations
 
         refinement_distance (float): Refinement's goal distance
 
@@ -324,8 +324,8 @@ def refinement ( target, num_qubits, gate_size, gate_fun_vals, gate_locs_fixed,
     tf.reset_default_graph()
 
     layers = [ FixedGate( "Gate%d" % i, num_qubits, gate_size,
-                          location = l, fun_values = a )
-               for a, l in zip( gate_fun_vals, gate_locs_fixed ) ]
+                          loc = l, fun_vals = a )
+               for a, l in zip( fun_vals, loc_fixed ) ]
 
     tensor = layers[0].get_tensor()
     for layer in layers[1:]:
@@ -375,14 +375,14 @@ def refinement ( target, num_qubits, gate_size, gate_fun_vals, gate_locs_fixed,
         return [ l.get_fun_vals( sess ) for l in layers ]
 
 
-def convert_to_block_list ( link, fun_vals, loc_fixed ):
+def convert_to_block_list ( block_loc, fun_vals, loc_fixed ):
     """
     Converts the function parameters to unitary matrices and composes
     location into a larger circuit. Returns the resulting block list.
 
     Args:
-        link (Tuple[int]): The link in a larger circuit that this
-                           circuit corresponds to.
+        block_loc (Tuple[int]): The location in a larger circuit that
+                                this circuit corresponds to.
 
         fun_vals (List[List[float]]): Gate function values
 
@@ -400,8 +400,8 @@ def convert_to_block_list ( link, fun_vals, loc_fixed ):
         utry = get_unitary_from_pauli_coefs( params )
 
         # Compose location
-        link = tuple( [ block.link[i] for i in link ] )
+        new_loc = tuple( [ block_loc[i] for i in loc ] )
 
-        block_list.append( Block( utry, link ) )
+        block_list.append( Block( utry, new_loc ) )
 
     return block_list

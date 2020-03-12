@@ -6,11 +6,7 @@ A block is a unitary operation applied to a set of qubits.
 
 import numpy as np
 
-from timeit import default_timer as timer
-
-from .pauli import get_unitary_from_pauli_coefs
-from .pauli import unitary_log_no_i, pauli_expansion
-from .synthesis import synthesize, refine_circuit
+from tools import unitary_log_no_i, pauli_expansion
 
 
 class Block():
@@ -18,14 +14,14 @@ class Block():
     The Block Class.
     """
 
-    def __init__ ( self, utry, link ):
+    def __init__ ( self, utry, loc ):
         """
         Block Class Constructor
 
         Args:
-            utry (np.array): Unitary
+            utry (np.ndarray): Unitary
 
-            link (tuple[int]): Link location
+            location (tuple[int]): Block location (set of qubits)
         """
 
         if not isinstance( utry, np.ndarray ):
@@ -34,11 +30,11 @@ class Block():
         if len( utry.shape ) != 2:
             raise TypeError( "utry must be a matrix." )
 
-        if 2 ** len( link ) != utry.shape[0]:
-            raise ValueError( "link and utry have different dimensions." )
+        if 2 ** len( location ) != utry.shape[0]:
+            raise ValueError( "loc and utry have incompatible dimensions." )
 
-        if 2 ** len( link ) != utry.shape[1]:
-            raise ValueError( "link and utry have different dimensions." )
+        if 2 ** len( location ) != utry.shape[1]:
+            raise ValueError( "loc and utry have incompatible dimensions." )
 
         if not np.allclose( utry @ utry.conj().T, np.identity( len( utry ) ) ):
             raise ValueError( "utry must be a unitary matrix." )
@@ -47,17 +43,68 @@ class Block():
             raise ValueError( "utry must be a unitary matrix." )
 
         self.utry = utry
-        self.link = link
-        self.num_qubits = len( link )
+        self.loc  = loc
+        self.num_qubits = len( loc )
 
-    def get_pauli_params ( self ):
+    def get_utry ( self ):
+        """
+        Gets the block's unitary.
+
+        Returns:
+            (np.ndarray): Block's unitary
+        """
+
+        return self.utry
+
+    def get_fun_vals ( self ):
+        """
+        Gets the block's function parameters.
+
+        Returns:
+            (List[float]): Block's function parameters
+        """
+
         return pauli_expansion( unitary_log_no_i( self.utry ) )
 
+    def get_location ( self ):
+        """
+        Gets the block's location.
+
+        Returns:
+            (Tuple[int]): Block's location
+        """
+
+        return self.loc
+
+    def get_num_qubits ( self ):
+        """
+        Gets the block's size in qubits.
+
+        Returns:
+            (int): Block's size
+        """
+
+        return self.num_qubits
+
     def __str__ ( self ):
-        return str( self.link ) + ":" + str( self.utry )
+        """
+        Gets the block's string representation.
+
+        Returns:
+            (str): Block's string representation
+        """
+
+        return str( self.loc ) + ":" + str( self.utry )
 
     def __repr__ ( self ):
-        return str( self.link )           \
+        """
+        Gets a simple block string representation.
+
+        Returns:
+            (str): Block's simple string representation
+        """
+
+        return str( self.loc )           \
                + ": [["                    \
                + str( self.utry[0][0] )   \
                + " ... "                  \
