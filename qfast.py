@@ -78,7 +78,7 @@ if __name__ == "__main__":
                           ", add --unitary-file" )
         if args.unitary_dir is None:
             parser.error( "No unitary output directory specified" + \
-                          ", add --unitary-file" )
+                          ", add --unitary-dir" )
 
     # If we are only doing instantiation need unitary dir and qasm dir
     if args.instantiate_only:
@@ -100,7 +100,8 @@ if __name__ == "__main__":
 
     if args.decompose_only:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
-        circ   = Circuit( target ).decompose( 1 )
+        circ = Circuit( target )
+        circ.hierarchically_decompose( 2 )
         circ.dump_blocks( args.unitary_dir )
     elif args.instantiate_only:
         pass
@@ -108,7 +109,8 @@ if __name__ == "__main__":
         pass
     elif complete_qfast:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
-        circ   = Circuit( target ).synthesize( 1 )
+        circ = Circuit( target )
+        circ.hierarchically_decompose( 2 )
         pass
 
 """

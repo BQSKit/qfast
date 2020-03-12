@@ -54,13 +54,14 @@ class Circuit():
         """
 
         # Decompose circuit
-        while any( [ block.size > native_block_size for block in self.blocks ] ):
+        while any( [ block.num_qubits > native_block_size
+                     for block in self.blocks ] ):
 
             new_block_list = []
 
             for block in self.blocks:
 
-                if block.size <= native_block_size:
+                if block.num_qubits <= native_block_size:
                     new_block_list.append( block )
                 else:
                     new_block_list += decomposition( block, **kwargs )

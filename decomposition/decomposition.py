@@ -4,6 +4,7 @@ This module implements the main decomposition functions.
 
 import tensorflow as tf
 import numpy      as np
+import itertools  as it
 
 from decomposition import FixedGate, GenericGate, Block
 from tools import hilbert_schmidt_distance, get_unitary_from_pauli_coefs
@@ -49,7 +50,7 @@ def decomposition ( block, **kwargs ):
     params["refinement_learning_rate" ] = 1e-6
     params.update( kwargs )
 
-    gate_size = get_decomposition_size()
+    gate_size = get_decomposition_size( block.num_qubits )
 
     fun_vals, loc_vals = exploration( block.utry, block.num_qubits, gate_size,
                                       params["start_depth"],
@@ -324,8 +325,8 @@ def refinement ( target, num_qubits, gate_size, fun_vals, loc_fixed,
     tf.reset_default_graph()
 
     layers = [ FixedGate( "Gate%d" % i, num_qubits, gate_size,
-                          loc = l, fun_vals = a )
-               for a, l in zip( fun_vals, loc_fixed ) ]
+                          loc = loc_fixed[i], fun_vals = fun_vals[i] )
+               for i in range( len( fun_vals ) ) ]
 
     tensor = layers[0].get_tensor()
     for layer in layers[1:]:
@@ -397,7 +398,7 @@ def convert_to_block_list ( block_loc, fun_vals, loc_fixed ):
     for loc, fun_params in zip( loc_fixed, fun_vals ):
 
         # Convert to unitary
-        utry = get_unitary_from_pauli_coefs( params )
+        utry = get_unitary_from_pauli_coefs( fun_params )
 
         # Compose location
         new_loc = tuple( [ block_loc[i] for i in loc ] )

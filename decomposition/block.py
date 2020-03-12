@@ -30,10 +30,10 @@ class Block():
         if len( utry.shape ) != 2:
             raise TypeError( "utry must be a matrix." )
 
-        if 2 ** len( location ) != utry.shape[0]:
+        if 2 ** len( loc ) != utry.shape[0]:
             raise ValueError( "loc and utry have incompatible dimensions." )
 
-        if 2 ** len( location ) != utry.shape[1]:
+        if 2 ** len( loc ) != utry.shape[1]:
             raise ValueError( "loc and utry have incompatible dimensions." )
 
         if not np.allclose( utry @ utry.conj().T, np.identity( len( utry ) ) ):
