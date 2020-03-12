@@ -1,13 +1,8 @@
 import os
-import numpy           as np
-import argparse        as ap
-import scipy.linalg    as la
+import numpy    as np
+import argparse as ap
 
-from timeit import default_timer as timer
-
-from qfast import Block, Circuit
-from qfast import synthesize, refine_circuit, hilbert_schmidt_distance
-from qfast import get_norder_paulis, pauli_dot_product, get_pauli_n_qubit_projection
+from decomposition import Circuit
 
 
 if __name__ == "__main__":
@@ -49,9 +44,6 @@ if __name__ == "__main__":
                          type = str,
                          default = None,
                          help = "Qasm file output" )
-
-    parser.add_argument( "output", type = str,
-                         help = "Output File/Directory" )
 
     parser.add_argument( "-k", "--kernel", type = str, default = "kak",
                          choices = [ "uq", "kak" ] )
