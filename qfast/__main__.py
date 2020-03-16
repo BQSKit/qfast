@@ -101,7 +101,7 @@ if __name__ == "__main__":
     if args.decompose_only:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
         circ = Circuit( target )
-        circ.hierarchically_decompose( 2 )
+        circ.hierarchically_decompose( 3 )
         circ.dump_blocks( args.unitary_dir )
     elif args.instantiate_only:
         pass
