@@ -6,8 +6,11 @@ import tensorflow as tf
 import numpy      as np
 import itertools  as it
 
-from decomposition import FixedGate, GenericGate, Block
-from tools import hilbert_schmidt_distance, get_unitary_from_pauli_coefs
+from .fixedgate import FixedGate
+from .genericgate import GenericGate
+from .block import Block
+from .metrics import hilbert_schmidt_distance
+from .pauli import get_unitary_from_pauli_coefs
 
 
 def decomposition ( block, **kwargs ):

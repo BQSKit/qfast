@@ -6,7 +6,7 @@ A block is a unitary operation applied to a set of qubits.
 
 import numpy as np
 
-from tools import unitary_log_no_i, pauli_expansion
+from .pauli import unitary_log_no_i, pauli_expansion
 
 
 class Block():

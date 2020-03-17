@@ -8,8 +8,8 @@ import os
 
 import numpy as np
 
-from decomposition import Block
-from decomposition import decomposition, refinement, convert_to_block_list
+from .block import Block
+from .decomposition import decomposition, refinement, convert_to_block_list
 
 
 class Circuit():

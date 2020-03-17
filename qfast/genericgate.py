@@ -9,7 +9,7 @@ import numpy        as np
 import scipy.linalg as la
 import itertools    as it
 
-from tools import get_pauli_n_qubit_projection
+from .pauli import get_pauli_n_qubit_projection
 
 
 class GenericGate():

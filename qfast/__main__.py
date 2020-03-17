@@ -2,8 +2,8 @@ import os
 import numpy    as np
 import argparse as ap
 
-from decomposition import Circuit
-
+from .circuit import Circuit
+from .instantiation import *
 
 if __name__ == "__main__":
     description_info = "Synthesize a unitary matrix."
@@ -45,8 +45,16 @@ if __name__ == "__main__":
                          default = None,
                          help = "Qasm file output" )
 
-    parser.add_argument( "-k", "--kernel", type = str, default = "kak",
-                         choices = [ "uq", "kak" ] )
+    parser.add_argument( "-n", "--native-tool",
+                         type = str,
+                         default = None,
+                         choices = list_native_tools(),
+                         help = "The tool to use during instantiation." )
+
+    parser.add_argument( "-b", "--block-size",
+                         type = int,
+                         default = 2,
+                         help = "The block size to decompose to." )
 
 
     args = parser.parse_args()
@@ -65,46 +73,70 @@ if __name__ == "__main__":
     # If we need to do everything need unitary file and qasm file
     if complete_qfast:
         if args.unitary_file is None:
-            parser.error( "No unitary input file specified" + \
-                          ", add --unitary-file" )
+            parser.error( "No unitary input file specified"
+                          ", add --unitary-file." )
         if args.qasm_file is None:
-            parser.error( "No qasm output file specified" + \
-                          ", add --qasm-file" )
+            parser.error( "No qasm output file specified"
+                          ", add --qasm-file." )
+        if args.native_tool is None:
+            parser.error( "No native tool specified"
+                          ", add --native-tool." )
  
     # If we are only doing decomposition need unitary file and dir
     if args.decompose_only:
         if args.unitary_file is None:
-            parser.error( "No unitary input file specified" + \
-                          ", add --unitary-file" )
+            parser.error( "No unitary input file specified"
+                          ", add --unitary-file." )
         if args.unitary_dir is None:
-            parser.error( "No unitary output directory specified" + \
-                          ", add --unitary-dir" )
+            parser.error( "No unitary output directory specified"
+                          ", add --unitary-dir." )
 
     # If we are only doing instantiation need unitary dir and qasm dir
     if args.instantiate_only:
         if args.unitary_dir is None:
-            parser.error( "No unitary input directory specified" + \
-                          ", add --unitary-dir" )
+            parser.error( "No unitary input directory specified"
+                          ", add --unitary-dir." )
         if args.qasm_dir is None:
-            parser.error( "No qasm output directory specified" + \
-                          ", add --qasm-dir" )
+            parser.error( "No qasm output directory specified"
+                          ", add --qasm-dir." )
+        if args.native_tool is None:
+            parser.error( "No native tool specified"
+                          ", add --native-tool." )
 
     # If we are only doing recombination need qasm dir and qasm file
     if args.recombine_only:
         if args.qasm_dir is None:
-            parser.error( "No qasm output directory specified" + \
-                          ", add --qasm-dir" )
+            parser.error( "No qasm input directory specified"
+                          ", add --qasm-dir." )
         if args.qasm_file is None:
-            parser.error( "No qasm output file specified" + \
-                          ", add --qasm-file" )
+            parser.error( "No qasm output file specified"
+                          ", add --qasm-file." )
 
     if args.decompose_only:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
         circ = Circuit( target )
-        circ.hierarchically_decompose( 3 )
+        circ.hierarchically_decompose( args.block_size )
+
+        if not os.path.isdir( args.unitary_dir ):
+            os.makedirs( args.unitary_dir )
+        
         circ.dump_blocks( args.unitary_dir )
+
     elif args.instantiate_only:
-        pass
+        if not os.path.isdir( args.unitary_dir ):
+            raise RuntimeError( "Unitary directory does not exist." )
+        
+        if not os.path.isdir( args.qasm_dir ):
+            os.makedirs( args.qasm_dir )
+        
+        for file in os.listdir( args.unitary_dir ):
+            utry = np.loadtxt( os.path.join( args.unitary_dir, file ),
+                               dtype = np.complex128 )
+            name = ".".join( file.split(".")[:-1] ) + ".qasm"
+            qasm = instantiation( args.native_tool, utry )
+            with open( os.path.join( args.qasm_dir, name ), 'w' ) as f:
+                f.write( qasm )
+
     elif args.recombine_only:
         pass
     elif complete_qfast:
