@@ -4,6 +4,7 @@ import argparse as ap
 
 from .circuit import Circuit
 from .instantiation import *
+from .recombination import recombination
 
 if __name__ == "__main__":
     description_info = "Synthesize a unitary matrix."
@@ -138,25 +139,36 @@ if __name__ == "__main__":
                 f.write( qasm )
 
     elif args.recombine_only:
-        pass
+        if not os.path.isdir( args.qasm_dir ):
+            raise RuntimeError( "Qasm directory does not exist." )
+
+        qasm_list_dict = {}
+        loc_fixed_dict = {}
+
+        for file in os.listdir( args.qasm_dir ):
+            with open( os.path.join( args.qasm_dir, file ), "r" ) as f:
+                qasm = f.read()
+            name_list = file.replace( ".qasm", "" ).split("_")
+            loc = tuple( int(x) for x in name_list[1:] )
+            idx = int( name_list[0] )
+            qasm_list_dict[ idx ] = qasm
+            loc_fixed_dict[ idx ] = loc
+        
+        qasm_list = []
+        loc_fixed = []
+
+        for i in range( len( os.listdir( args.qasm_dir ) ) ):
+            qasm_list.append( qasm_list_dict[ i ] )
+            loc_fixed.append( loc_fixed_dict[ i ] )
+        
+        out_qasm = recombination( qasm_list, loc_fixed )
+
+        with open( args.qasm_file, "w" ) as f:
+            f.write( out_qasm )
+
     elif complete_qfast:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
         circ = Circuit( target )
         circ.hierarchically_decompose( 2 )
         pass
-
-"""
-    if args.kernel == "uq":
-        if not os.path.isdir( args.output ):
-            os.mkdir( args.output )
-
-        for i, block in enumerate( result ):
-            linkname = str( block.link ).replace( ", ", "_" ).replace("(", "").replace(")", "")
-            filename = "%d_%s.unitary" % ( i, linkname )
-            filename = os.path.join( args.output, filename )
-            np.savetxt( filename, block.utry )
-    else:
-        with open( args.output, 'w' ) as f:
-            f.write( result )
-            """
 
