@@ -82,7 +82,7 @@ if __name__ == "__main__":
         if args.native_tool is None:
             parser.error( "No native tool specified"
                           ", add --native-tool." )
- 
+
     # If we are only doing decomposition need unitary file and dir
     if args.decompose_only:
         if args.unitary_file is None:
@@ -120,16 +120,16 @@ if __name__ == "__main__":
 
         if not os.path.isdir( args.unitary_dir ):
             os.makedirs( args.unitary_dir )
-        
+
         circ.dump_blocks( args.unitary_dir )
 
     elif args.instantiate_only:
         if not os.path.isdir( args.unitary_dir ):
             raise RuntimeError( "Unitary directory does not exist." )
-        
+
         if not os.path.isdir( args.qasm_dir ):
             os.makedirs( args.qasm_dir )
-        
+
         for file in os.listdir( args.unitary_dir ):
             utry = np.loadtxt( os.path.join( args.unitary_dir, file ),
                                dtype = np.complex128 )
@@ -153,14 +153,14 @@ if __name__ == "__main__":
             idx = int( name_list[0] )
             qasm_list_dict[ idx ] = qasm
             loc_fixed_dict[ idx ] = loc
-        
+
         qasm_list = []
         loc_fixed = []
 
         for i in range( len( os.listdir( args.qasm_dir ) ) ):
             qasm_list.append( qasm_list_dict[ i ] )
             loc_fixed.append( loc_fixed_dict[ i ] )
-        
+
         out_qasm = recombination( qasm_list, loc_fixed )
 
         with open( args.qasm_file, "w" ) as f:
@@ -169,6 +169,13 @@ if __name__ == "__main__":
     elif complete_qfast:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
         circ = Circuit( target )
-        circ.hierarchically_decompose( 2 )
-        pass
+        circ.hierarchically_decompose( args.block_size )
 
+        qasm_list = [ instantiation( args.native_tool, block.utry )
+                      for block in circ.blocks ]
+        locations = circ.get_locations()
+
+        out_qasm = recombination( qasm_list, locations )
+
+        with open( args.qasm_file, "w" ) as f:
+            f.write( out_qasm )
