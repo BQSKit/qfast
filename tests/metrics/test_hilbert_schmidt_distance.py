@@ -16,6 +16,36 @@ class TestHilbertSchmidtDistance ( tf.test.TestCase ):
             [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j],
             [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j]] )
 
+    INVALID = np.asarray(
+            [[1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+            [0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+            [0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+            [0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+            [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+            [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j],
+            [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j],
+            [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j],
+            [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j]] )
+
+    def test_hilbert_schmidt_distance_invalid_type ( self ):
+        self.assertRaises( TypeError, hilbert_schmidt_distance,
+                           1, 1 )
+        self.assertRaises( TypeError, hilbert_schmidt_distance,
+                           self.TOFFOLI, 1 )
+        self.assertRaises( TypeError, hilbert_schmidt_distance,
+                           1, self.TOFFOLI )
+        toffoli_tensor = tf.constant( self.TOFFOLI )
+        self.assertRaises( TypeError, hilbert_schmidt_distance,
+                           toffoli_tensor, 1 )
+        self.assertRaises( TypeError, hilbert_schmidt_distance,
+                           1, toffoli_tensor )
+
+    def test_hilbert_schmidt_distance_invalid_shape ( self ):
+        self.assertRaises( ValueError, hilbert_schmidt_distance,
+                           self.TOFFOLI, self.INVALID )
+        self.assertRaises( ValueError, hilbert_schmidt_distance,
+                           self.INVALID, self.TOFFOLI )
+
     def test_hilbert_schmidt_distance_numpy_numpy ( self ):
         loss = hilbert_schmidt_distance( self.TOFFOLI, self.TOFFOLI )
         self.assertEquals( loss, 0 )

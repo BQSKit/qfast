@@ -15,4 +15,5 @@ from .pauli         import get_pauli_n_qubit_projection
 from .pauli         import pauli_dot_product
 from .pauli         import pauli_expansion
 from .pauli         import unitary_log_no_i
+from .recombination import recombination
 
