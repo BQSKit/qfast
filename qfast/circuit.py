@@ -39,7 +39,7 @@ class Circuit():
 
         self.utry = utry
         self.num_qubits = int( np.log2( len( utry ) ) )
-        self.blocks = [ Block( self.utry, list( range( self.num_qubits ) ) ) ]
+        self.blocks = [ Block( self.utry, tuple( range( self.num_qubits ) ) ) ]
 
     def hierarchically_decompose ( self, native_block_size, **kwargs ):
         """
