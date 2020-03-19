@@ -169,7 +169,8 @@ if __name__ == "__main__":
     elif complete_qfast:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
         circ = Circuit( target )
-        circ.hierarchically_decompose( args.block_size )
+        block_size = get_native_tool( args.native_tool ).get_native_block_size()
+        circ.hierarchically_decompose( block_size )
 
         qasm_list = [ instantiation( args.native_tool, block.utry )
                       for block in circ.blocks ]
