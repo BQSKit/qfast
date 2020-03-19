@@ -103,6 +103,16 @@ class Circuit():
         return ( [ b.get_fun_vals() for b in self.blocks ],
                  [ b.get_location() for b in self.blocks ] )
 
+    def get_locations ( self ):
+        """
+        Gets the locations of all the blocks in the circuit.
+
+        Returns:
+            (List[Tuple[int]]): The circuit block's locations
+        """
+
+        return [ b.get_location() for b in self.blocks ]
+
     def dump_blocks ( self, directory ):
         """
         Dumps the circuit's blocks into a directory.
