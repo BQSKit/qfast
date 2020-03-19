@@ -29,7 +29,7 @@ def recombination ( qasm_list, loc_fixed ):
     if ( not all( isinstance( loc, tuple ) for loc in loc_fixed )
          or not all( len( loc ) == len( set( loc ) ) for loc in loc_fixed )
          or not all( isinstance( q, int ) for loc in loc_fixed for q in loc ) ):
-        raise TypeError( "loc_fixed must contain locations." )
+        raise TypeError( "loc_fixed must contain valid locations." )
 
     # Calculate Output Circuit Size
     max_qubit = 0

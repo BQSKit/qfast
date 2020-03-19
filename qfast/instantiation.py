@@ -33,7 +33,7 @@ def get_native_tool ( tool ):
 
     Args:
         tool (str): The native tool
-    
+
     Return:
         (module): Module associated with the tool specified
     """

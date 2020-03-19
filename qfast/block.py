@@ -30,6 +30,15 @@ class Block():
         if len( utry.shape ) != 2:
             raise TypeError( "utry must be a matrix." )
 
+        if not isinstance( loc, tuple ):
+            raise TypeError( "loc must be a location." )
+
+        if not all( isinstance( q, int ) for q in loc ):
+            raise TypeError( "loc must be a location." )
+
+        if not len( loc ) == len( set( loc ) ):
+            raise TypeError( "loc must be a valid location." )
+
         if 2 ** len( loc ) != utry.shape[0]:
             raise ValueError( "loc and utry have incompatible dimensions." )
 
