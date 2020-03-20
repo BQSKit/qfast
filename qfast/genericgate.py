@@ -10,6 +10,7 @@ import scipy.linalg as la
 import itertools    as it
 
 from .pauli import get_pauli_n_qubit_projection
+from .pauli import get_pauli_tensor_n_qubit_projection
 
 
 class GenericGate():
@@ -87,8 +88,8 @@ class GenericGate():
             gates = []
 
             for location in self.topology:
-                paulis = get_pauli_n_qubit_projection( self.num_qubits,
-                                                       location )
+                paulis = get_pauli_tensor_n_qubit_projection( self.num_qubits,
+                                                              location )
 
                 H = tf.reduce_sum( [ var * pauli for var, pauli
                                      in zip( self.cast_vars, paulis ) ], 0 )

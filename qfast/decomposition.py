@@ -10,7 +10,7 @@ from .fixedgate import FixedGate
 from .genericgate import GenericGate
 from .block import Block
 from .metrics import hilbert_schmidt_distance
-from .pauli import get_unitary_from_pauli_coefs
+from .pauli import get_unitary_from_pauli_coefs, reset_tensor_cache
 
 
 def decomposition ( block, **kwargs ):
@@ -203,6 +203,7 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, fun_vals,
     """
 
     tf.reset_default_graph()
+    reset_tensor_cache()
 
     layers = [ GenericGate( "Gate%d" % i, num_qubits, gate_size,
                             fun_vals[i], loc_vals[i],
@@ -326,6 +327,7 @@ def refinement ( target, num_qubits, gate_size, fun_vals, loc_fixed,
     """
 
     tf.reset_default_graph()
+    reset_tensor_cache()
 
     layers = [ FixedGate( "Gate%d" % i, num_qubits, gate_size,
                           loc = loc_fixed[i], fun_vals = fun_vals[i] )

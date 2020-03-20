@@ -9,6 +9,7 @@ import numpy        as np
 import scipy.linalg as la
 
 from .pauli import get_pauli_n_qubit_projection
+from .pauli import get_pauli_tensor_n_qubit_projection
 
 
 class FixedGate():
@@ -60,8 +61,8 @@ class FixedGate():
             self.cast_vars = [ tf.cast( x, tf.complex128 )
                                for x in self.fun_vars ]
 
-            paulis = get_pauli_n_qubit_projection( self.num_qubits,
-                                                   self.location )
+            paulis = get_pauli_tensor_n_qubit_projection( self.num_qubits,
+                                                          self.location )
 
             self.herm = tf.reduce_sum( [ var * pauli
                                          for var, pauli
