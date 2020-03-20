@@ -19,4 +19,7 @@ from .pauli         import pauli_expansion
 from .pauli         import unitary_log_no_i
 from .pauli         import reset_tensor_cache
 from .recombination import recombination
+from .instantiation import list_native_tools
+from .instantiation import get_native_tool
+from .instantiation import instantiation
 
