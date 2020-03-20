@@ -31,6 +31,9 @@ class Circuit():
         if len( utry.shape ) != 2:
             raise TypeError( "utry must be a matrix." )
 
+        if utry.shape[0] != utry.shape[1]:
+            raise TypeError( "utry must be a square matrix." )
+
         if not np.allclose( utry @ utry.conj().T, np.identity( len( utry ) ) ):
             raise ValueError( "utry must be a unitary matrix." )
 
@@ -120,6 +123,9 @@ class Circuit():
         Args:
             directory (str): The directory where blocks will be dumped.
         """
+
+        if not os.path.isdir( directory ):
+            raise ValueError( "Invalid directory: %s" % directory )
 
         for i, block in enumerate( self.blocks ):
             linkname = str( block.get_location() ).replace( ", ", "_" )
