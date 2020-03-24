@@ -128,3 +128,104 @@ class TestRecombination ( tf.test.TestCase ):
                                       "cx q[2],q[3];\n"
                                       "cx q[1],q[2];\n"
                                       "cx q[0],q[1];\n" ) )
+
+    def test_recombination_rxryrz ( self ):
+        qasm_list = [ ( "OPENQASM 2.0;\n"
+                        "include \"qelib1.inc\";\n"
+                        "qreg q[4];\n"
+                        "cx q[0],q[1];\n"
+                        "cx q[1],q[2];\n"
+                        "cx q[2],q[3];\n" ),
+                      ( "OPENQASM 2.0;\n"
+                        "include \"qelib1.inc\";\n"
+                        "qreg q[1];\n"
+                        "rz(1.57) q[0];\n" ),
+                      ( "OPENQASM 2.0;\n"
+                        "include \"qelib1.inc\";\n"
+                        "qreg q[4];\n"
+                        "cx q[2],q[3];\n"
+                        "cx q[1],q[2];\n"
+                        "cx q[0],q[1];\n" ) ]
+
+        loc_fixed = [ (0, 1, 2, 3), (3,), (0, 1, 2, 3) ]
+
+        out_qasm = recombination( qasm_list, loc_fixed )
+
+        self.assertEqual( out_qasm, ( "OPENQASM 2.0;\n"
+                                      "include \"qelib1.inc\";\n"
+                                      "qreg q[4];\n"
+                                      "cx q[0],q[1];\n"
+                                      "cx q[1],q[2];\n"
+                                      "cx q[2],q[3];\n"
+                                      "u1(1.57) q[3];\n"
+                                      "cx q[2],q[3];\n"
+                                      "cx q[1],q[2];\n"
+                                      "cx q[0],q[1];\n" ) )
+
+        qasm_list = [ ( "OPENQASM 2.0;\n"
+                        "include \"qelib1.inc\";\n"
+                        "qreg q[4];\n"
+                        "cx q[0],q[1];\n"
+                        "cx q[1],q[2];\n"
+                        "cx q[2],q[3];\n" ),
+                      ( "OPENQASM 2.0;\n"
+                        "include \"qelib1.inc\";\n"
+                        "qreg q[1];\n"
+                        "ry(1.57) q[0];\n" ),
+                      ( "OPENQASM 2.0;\n"
+                        "include \"qelib1.inc\";\n"
+                        "qreg q[4];\n"
+                        "cx q[2],q[3];\n"
+                        "cx q[1],q[2];\n"
+                        "cx q[0],q[1];\n" ) ]
+
+        loc_fixed = [ (0, 1, 2, 3), (3,), (0, 1, 2, 3) ]
+
+        out_qasm = recombination( qasm_list, loc_fixed )
+
+        self.assertEqual( out_qasm, ( "OPENQASM 2.0;\n"
+                                      "include \"qelib1.inc\";\n"
+                                      "qreg q[4];\n"
+                                      "cx q[0],q[1];\n"
+                                      "cx q[1],q[2];\n"
+                                      "cx q[2],q[3];\n"
+                                      "u3(1.57,0.0,0.0) q[3];\n"
+                                      "cx q[2],q[3];\n"
+                                      "cx q[1],q[2];\n"
+                                      "cx q[0],q[1];\n" ) )
+
+        qasm_list = [ ( "OPENQASM 2.0;\n"
+                        "include \"qelib1.inc\";\n"
+                        "qreg q[4];\n"
+                        "cx q[0],q[1];\n"
+                        "cx q[1],q[2];\n"
+                        "cx q[2],q[3];\n" ),
+                      ( "OPENQASM 2.0;\n"
+                        "include \"qelib1.inc\";\n"
+                        "qreg q[1];\n"
+                        "ry(1.57) q[0];\n"
+                        "rx(1.57) q[0];\n"
+                        "rz(1.57) q[0];\n" ),
+                      ( "OPENQASM 2.0;\n"
+                        "include \"qelib1.inc\";\n"
+                        "qreg q[4];\n"
+                        "cx q[2],q[3];\n"
+                        "cx q[1],q[2];\n"
+                        "cx q[0],q[1];\n" ) ]
+
+        loc_fixed = [ (0, 1, 2, 3), (3,), (0, 1, 2, 3) ]
+
+        out_qasm = recombination( qasm_list, loc_fixed )
+
+        self.assertTrue( "OPENQASM 2.0;\n"
+                         "include \"qelib1.inc\";\n"
+                         "qreg q[4];\n"
+                         "cx q[0],q[1];\n"
+                         "cx q[1],q[2];\n"
+                         "cx q[2],q[3];\n" in out_qasm )
+
+        self.assertTrue( "cx q[2],q[3];\n"
+                         "cx q[1],q[2];\n"
+                         "cx q[0],q[1];\n" in out_qasm )
+
+        self.assertTrue( "u3" in out_qasm )

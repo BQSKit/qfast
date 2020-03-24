@@ -229,10 +229,10 @@ def unitary_log_no_i ( U ):
     """
 
     if ( not np.allclose( U.conj().T @ U, np.identity( len( U ) ),
-                          rtol = 0, atol = 1e-16 )
+                          rtol = 0, atol = 1e-14 )
          or
          not np.allclose( U @ U.conj().T, np.identity( len( U ) ),
-                          rtol = 0, atol = 1e-16 ) ):
+                          rtol = 0, atol = 1e-14 ) ):
         raise ValueError( "U must be a unitary matrix." )
 
     T, Z = scipy.linalg.schur( U, output = 'complex' )
@@ -255,10 +255,10 @@ def unitary_log_no_i_eig ( U ):
     """
 
     if ( not np.allclose( U.conj().T @ U, np.identity( len( U ) ),
-                          rtol = 0, atol = 1e-16 )
+                          rtol = 0, atol = 1e-14 )
          or
          not np.allclose( U @ U.conj().T, np.identity( len( U ) ),
-                          rtol = 0, atol = 1e-16 ) ):
+                          rtol = 0, atol = 1e-14 ) ):
         raise ValueError( "U must be a unitary matrix." )
 
     T, Z = scipy.linalg.eig( U )
@@ -281,7 +281,7 @@ def pauli_expansion ( H ):
                             Pauli matrices of same size of H
     """
 
-    if not np.allclose( H, H.conj().T, rtol = 0, atol = 1e-15 ):
+    if not np.allclose( H, H.conj().T, rtol = 0, atol = 1e-14 ):
         raise ValueError( "H must be hermitian." )
 
     # Change basis of H to Pauli Basis (solve for coefficients -> X)

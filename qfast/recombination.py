@@ -63,6 +63,12 @@ def recombination ( qasm_list, loc_fixed ):
                 out_circ.u2( *gate[0].params, loc[ gate[1][0].index ] )
             elif gate[0].name == 'u3':
                 out_circ.u3( *gate[0].params, loc[ gate[1][0].index ] )
+            elif gate[0].name == 'rx':
+                out_circ.rx( *gate[0].params, loc[ gate[1][0].index ] )
+            elif gate[0].name == 'ry':
+                out_circ.ry( *gate[0].params, loc[ gate[1][0].index ] )
+            elif gate[0].name == 'rz':
+                out_circ.rz( *gate[0].params, loc[ gate[1][0].index ] )
             else:
                 raise ValueError( "QASM must be in \'u1, u2, u3, cx\' basis." )
 
