@@ -18,7 +18,7 @@ class GenericGate():
     The GenericGate Class.
     """
 
-    def __init__ ( self, name, num_qubits, gate_size, fun_vals = None,
+    def __init__ ( self, name, num_qubits, gate_size, lm, fun_vals = None,
                    loc_vals = None, parity = None ):
         """
         GenericGate Class Constructor.
@@ -29,6 +29,8 @@ class GenericGate():
             num_qubits (int): The number of qubits in the circuit
 
             gate_size (int): The size of the gate
+
+            lm (LocationModel): The model that maps loc_vals to locations
 
             fun_vals (List[float]): Initial values for the
                                     gate's function
@@ -49,13 +51,7 @@ class GenericGate():
         self.gate_size  = gate_size
         self.loc_vals   = loc_vals
         self.fun_vals   = fun_vals
-        self.topology   = list( it.combinations( range( self.num_qubits ),
-                                                 self.gate_size ) )
-
-        if parity == 0:
-            self.topology = self.topology[:len(self.topology)//2]
-        elif parity == 1:
-            self.topology = self.topology[len(self.topology)//2:]
+        self.topology   = lm.locations if parity is None else lm.buckets[ parity ]
 
         self.num_loc_vars = len( self.topology )
         self.num_fun_vars = 4 ** self.gate_size

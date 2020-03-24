@@ -4,7 +4,6 @@ from .block         import Block
 from .decomposition import get_decomposition_size
 from .decomposition import fixed_depth_exploration
 from .decomposition import exploration
-from .decomposition import fix_locations
 from .decomposition import refinement
 from .decomposition import convert_to_block_list
 from .decomposition import decomposition
@@ -22,4 +21,6 @@ from .recombination import recombination
 from .instantiation import list_native_tools
 from .instantiation import get_native_tool
 from .instantiation import instantiation
+from .locationmodel import greedy_max_cut
+from .locationmodel import LocationModel
 

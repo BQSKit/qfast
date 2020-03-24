@@ -8,6 +8,7 @@ import itertools  as it
 
 from .fixedgate import FixedGate
 from .genericgate import GenericGate
+from .locationmodel import LocationModel
 from .block import Block
 from .metrics import hilbert_schmidt_distance
 from .pauli import get_unitary_from_pauli_coefs, reset_tensor_cache
@@ -55,13 +56,15 @@ def decomposition ( block, **kwargs ):
 
     gate_size = get_decomposition_size( block.num_qubits )
 
+    lm = LocationModel( block.num_qubits, gate_size )
+
     fun_vals, loc_vals = exploration( block.utry, block.num_qubits, gate_size,
                                       params["start_depth"],
-                                      params["depth_step"],
+                                      params["depth_step"], lm,
                                       params["exploration_distance"],
                                       params["exploration_learning_rate"] )
 
-    loc_fixed = fix_locations( block.num_qubits, gate_size, loc_vals )
+    loc_fixed = lm.fix_locations( loc_vals )
 
     fun_vals = refinement( block.utry, block.num_qubits, gate_size,
                            fun_vals, loc_fixed,
@@ -92,7 +95,7 @@ def get_decomposition_size ( num_qubits ):
 
 
 def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
-                  exploration_distance = 0.01, learning_rate = 0.01 ):
+                  lm, exploration_distance = 0.01, learning_rate = 0.01 ):
     """
     Synthesizes a circuit that implements the target unitary. Explores
     both circuit structure (gate location) and gate functions.
@@ -107,6 +110,8 @@ def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
         start_depth (int): The number of gates to start searching from
 
         depth_step (int): The number of added gates in each step
+
+        lm (LocationModel): The model that maps loc_vals to locations
 
         exploration_distance (float): Exploration's goal distance
 
@@ -126,7 +131,7 @@ def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
     # Stride search over layer_count
     while ( True ):
         result = fixed_depth_exploration( target, num_qubits, gate_size,
-                                          fun_vals, loc_vals,
+                                          fun_vals, loc_vals, lm,
                                           exploration_distance, learning_rate )
 
         success, fun_vals, loc_vals = result
@@ -158,7 +163,7 @@ def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
         #     print( "Removing a layer, now: %d layers" % layer_count )
 
         result = fixed_depth_exploration( target, num_qubits, gate_size,
-                                          fun_vals, loc_vals,
+                                          fun_vals, loc_vals, lm,
                                           exploration_distance, learning_rate )
 
         success, fun_vals, loc_vals = result
@@ -175,7 +180,7 @@ def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
 
 
 def fixed_depth_exploration ( target, num_qubits, gate_size, fun_vals,
-                              loc_vals, exploration_distance = 0.01,
+                              loc_vals, lm, exploration_distance = 0.01,
                               learning_rate = 0.01 ):
     """
     Attempts to synthesize the target unitary with a fixed number
@@ -192,6 +197,8 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, fun_vals,
 
         loc_vals (List[List[float]]): Gate location values
 
+        lm (LocationModel): The model that maps loc_vals to locations
+
         exploration_distance (float): Exploration's goal distance
 
         learning_rate (float): Learning rate of the optimizer
@@ -205,9 +212,9 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, fun_vals,
     tf.reset_default_graph()
     reset_tensor_cache()
 
-    layers = [ GenericGate( "Gate%d" % i, num_qubits, gate_size,
+    layers = [ GenericGate( "Gate%d" % i, num_qubits, gate_size, lm,
                             fun_vals[i], loc_vals[i],
-                            parity = (i + 1) % 2 )
+                            parity = (i + 1) % lm.num_buckets )
                for i in range( len( fun_vals ) ) ]
 
     tensor = layers[0].get_tensor()
@@ -261,43 +268,6 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, fun_vals,
                     return ( False,
                              [ l.get_fun_vals( sess ) for l in layers ],
                              [ l.get_loc_vals( sess ) for l in layers ] )
-
-
-def fix_locations ( num_qubits, gate_size, loc_vals ):
-    """
-    Fixes the locations; used when converting from generic gates to
-    fixed gates.
-
-    Args:
-        num_qubits (int): Total number of qubits
-
-        gate_size (int): The size of the gates
-
-        loc_vals (List[List[float]]): Gate unfixed location values
-
-    Returns:
-        (List[Tuple[int]]): Fixed locations
-
-    Note:
-        This is bad programing since it's duplicated code
-        from different parts of the program and is more or less a hack
-        TODO: write a HardwareModel class that models a target
-        hardware architecture and can be queried for this and
-        other information.
-    """
-
-    loc_fixed = []
-    topology = list( it.combinations( range( num_qubits ), gate_size ) )
-
-    for i, loc_val in enumerate( loc_vals ):
-        loc_idx = np.argmax( loc_val )
-        parity = (i + 1) % 2
-        if parity == 0:
-            loc_fixed.append( topology[:len(topology)//2][loc_idx] )
-        elif parity == 1:
-            loc_fixed.append( topology[len(topology)//2:][loc_idx] )
-
-    return loc_fixed
 
 
 def refinement ( target, num_qubits, gate_size, fun_vals, loc_fixed,
