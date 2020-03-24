@@ -1,10 +1,10 @@
 import tensorflow as tf
 import numpy      as np
 
-from qfast import get_norder_paulis
+from qfast import get_norder_paulis_tensor, reset_tensor_cache
 
 
-class TestGetNorderPaulis ( tf.test.TestCase ):
+class TestGetNorderPaulisTensor ( tf.test.TestCase ):
 
     def in_array( self, needle, haystack ):
         for elem in haystack:
@@ -13,23 +13,37 @@ class TestGetNorderPaulis ( tf.test.TestCase ):
 
         return False
 
-    def test_get_norder_paulis_n1 ( self ):
+    def test_get_norder_paulis_tensor_n1 ( self ):
         num_qubits = -1
-        self.assertRaises( ValueError, get_norder_paulis, num_qubits )
+        self.assertRaises( ValueError, get_norder_paulis_tensor, num_qubits )
 
-    def test_get_norder_paulis_0 ( self ):
+    def test_get_norder_paulis_tensor_0 ( self ):
         num_qubits = 0
-        paulis = get_norder_paulis( num_qubits )
-        self.assertTrue( len( paulis ) == 4 ** num_qubits )
+        reset_tensor_cache()
+        tensors = get_norder_paulis_tensor( num_qubits )
+        self.assertTrue( len( tensors ) == 4 ** num_qubits )
+
+        paulis = []
+        with tf.Session() as sess:
+            sess.run( tf.global_variables_initializer() )
+            for tensor in tensors:
+                paulis.append( tensor.eval() )
 
         I = np.array( [[1, 0], [0, 1]], dtype = np.complex128 )
 
         self.assertTrue( self.in_array( I, paulis ) )
 
-    def test_get_norder_paulis_1 ( self ):
+    def test_get_norder_paulis_tensor_1 ( self ):
         num_qubits = 1
-        paulis = get_norder_paulis( num_qubits )
-        self.assertTrue( len( paulis ) == 4 ** num_qubits )
+        reset_tensor_cache()
+        tensors = get_norder_paulis_tensor( num_qubits )
+        self.assertTrue( len( tensors ) == 4 ** num_qubits )
+
+        paulis = []
+        with tf.Session() as sess:
+            sess.run( tf.global_variables_initializer() )
+            for tensor in tensors:
+                paulis.append( tensor.eval() )
 
         X = np.array( [[0, 1], [1, 0]], dtype = np.complex128 )
         Y = np.array( [[0, -1j], [1j, 0]], dtype = np.complex128 )
@@ -41,10 +55,17 @@ class TestGetNorderPaulis ( tf.test.TestCase ):
         self.assertTrue( self.in_array( Z, paulis ) )
         self.assertTrue( self.in_array( I, paulis ) )
 
-    def test_get_norder_paulis_2 ( self ):
+    def test_get_norder_paulis_tensor_2 ( self ):
         num_qubits = 2
-        paulis = get_norder_paulis( num_qubits )
-        self.assertTrue( len( paulis ) == 4 ** num_qubits )
+        reset_tensor_cache()
+        tensors = get_norder_paulis_tensor( num_qubits )
+        self.assertTrue( len( tensors ) == 4 ** num_qubits )
+
+        paulis = []
+        with tf.Session() as sess:
+            sess.run( tf.global_variables_initializer() )
+            for tensor in tensors:
+                paulis.append( tensor.eval() )
 
         X = np.array( [[0, 1], [1, 0]], dtype = np.complex128 )
         Y = np.array( [[0, -1j], [1j, 0]], dtype = np.complex128 )
@@ -68,10 +89,17 @@ class TestGetNorderPaulis ( tf.test.TestCase ):
         self.assertTrue( self.in_array( np.kron( I, Z ), paulis ) )
         self.assertTrue( self.in_array( np.kron( I, I ), paulis ) )
 
-    def test_get_norder_paulis_3 ( self ):
+    def test_get_norder_paulis_tensor_3 ( self ):
         num_qubits = 3
-        paulis = get_norder_paulis( num_qubits )
-        self.assertTrue( len( paulis ) == 4 ** num_qubits )
+        reset_tensor_cache()
+        tensors = get_norder_paulis_tensor( num_qubits )
+        self.assertTrue( len( tensors ) == 4 ** num_qubits )
+
+        paulis = []
+        with tf.Session() as sess:
+            sess.run( tf.global_variables_initializer() )
+            for tensor in tensors:
+                paulis.append( tensor.eval() )
 
         X = np.array( [[0, 1], [1, 0]], dtype = np.complex128 )
         Y = np.array( [[0, -1j], [1j, 0]], dtype = np.complex128 )

@@ -31,7 +31,12 @@ def hilbert_schmidt_distance ( X, Y ):
         mat = np.matmul( np.transpose( np.conj( X ) ), Y )
         num = np.abs( np.trace( mat ) ) ** 2
         dem = mat.shape[0] ** 2
-        return np.sqrt( 1 - ( num / dem ) )
+
+        quotient = num / dem
+        if np.allclose( 1, quotient, rtol = 0, atol = 1e-15 ):
+            quotient = 1
+
+        return np.sqrt( 1 - quotient )
     else:
         mat = tf.matmul( tf.transpose( tf.conj( X ) ), Y )
         num = tf.abs( tf.trace( mat ) ) ** 2
