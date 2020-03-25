@@ -51,7 +51,7 @@ class GenericGate():
         self.gate_size  = gate_size
         self.loc_vals   = loc_vals
         self.fun_vals   = fun_vals
-        self.topology   = lm.locations if parity is None else lm.buckets[ parity ]
+        self.topology   = list( lm.locations ) if parity is None else lm.buckets[ parity ]
 
         self.num_loc_vars = len( self.topology )
         self.num_fun_vars = 4 ** self.gate_size
@@ -122,9 +122,6 @@ class GenericGate():
 
     def get_loc_vars ( self ):
         return self.loc_vars
-
-    def get_softmax_vars ( self ):
-        return self.softmax
 
     def get_fun_vals ( self, sess ):
         return sess.run( self.fun_vars )
