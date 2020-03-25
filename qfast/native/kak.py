@@ -41,10 +41,10 @@ def synthesize ( utry ):
     if utry.shape[1] != 2 ** get_native_block_size():
         raise ValueError( "utry has incorrect dimensions." )
 
-    if ( not np.allclose( U.conj().T @ U, np.identity( len( U ) ),
+    if ( not np.allclose( utry.conj().T @ utry, np.identity( len( utry ) ),
                           rtol = 0, atol = 1e-14 )
          or
-         not np.allclose( U @ U.conj().T, np.identity( len( U ) ),
+         not np.allclose( utry @ utry.conj().T, np.identity( len( utry ) ),
                           rtol = 0, atol = 1e-14 ) ):
         raise ValueError( "utry must be a unitary matrix." )
 
