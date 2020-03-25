@@ -9,7 +9,7 @@ from qfast import hilbert_schmidt_distance
 class TestUnitaryLogNoI ( tf.test.TestCase ):
 
     def test_unitary_log_no_i_invalid ( self ):
-        U = np.array( [ [ 0, 1 ], [ 1, 1e-15j ] ] )
+        U = np.array( [ [ 0, 1 ], [ 1, 1e-13j ] ] )
         self.assertRaises( ValueError, unitary_log_no_i, U )
 
     def test_unitary_log_no_i_valid_1 ( self ):

@@ -23,6 +23,7 @@ from .instantiation import list_native_tools
 from .instantiation import get_native_tool
 from .instantiation import instantiation
 from .locationmodel import greedy_max_cut
+from .locationmodel import lexicographical_cut
 from .locationmodel import LocationModel
 
 

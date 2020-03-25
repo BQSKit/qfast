@@ -8,7 +8,7 @@ from qfast import hilbert_schmidt_distance
 class TestPauliExpansion ( tf.test.TestCase ):
 
     def test_pauli_expansion_invalid ( self ):
-        H = np.array( [ [ 0, 1 ], [ 1, 1e-15j ] ] )
+        H = np.array( [ [ 0, 1 ], [ 1, 1e-14j ] ] )
         self.assertRaises( ValueError, pauli_expansion, H )
 
     def test_pauli_expansion_valid_1 ( self ):

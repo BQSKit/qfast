@@ -2,18 +2,20 @@ import tensorflow as tf
 import numpy      as np
 
 
-from qfast import GenericGate, LocationModel
+from qfast import GenericGate, LocationModel, reset_tensor_cache
 
 
 class TestGenericgateConstructor ( tf.test.TestCase ):
 
     def test_genericgate_constructor_invalid ( self ):
+        reset_tensor_cache()
         lm = LocationModel( 4, 2 )
         self.assertRaises( ValueError, GenericGate, "Test", 2, 4, lm )
         self.assertRaises( ValueError, GenericGate, "Test", 4, 2, lm, [0, 1] )
         self.assertRaises( ValueError, GenericGate, "Test", 4, 2, lm, [0]*16, [0, 1] )
 
     def test_genericgate_constructor_valid ( self ):
+        reset_tensor_cache()
         lm = LocationModel( 4, 2 )
         gg = GenericGate( "Test", 4, 2, lm )
         self.assertEqual( gg.name, "Test" )
