@@ -1,12 +1,6 @@
 from os import path
 from setuptools import setup, find_namespace_packages
 
-requirements = [
-    "numpy==1.16.6",
-    "qiskit==0.16.1",
-    "scipy==1.4.1",
-    "tensorflow==1.13.1"
-]
 
 # Use READEME for long description.
 root_dir = path.abspath( path.dirname( __file__ ) )
