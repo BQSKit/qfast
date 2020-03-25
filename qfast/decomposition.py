@@ -38,6 +38,8 @@ def decomposition ( block, **kwargs ):
         refinement_learning_rate (float): Learning rate of refinement's
                                           optimizer
 
+        native_block_size (int): Minimum block size
+
     Returns:
         (List[Block]): Decomposed blocks
     """
@@ -54,6 +56,9 @@ def decomposition ( block, **kwargs ):
     params["refinement_learning_rate" ] = 1e-6
     params["native_block_size"] = 0
     params.update( kwargs )
+
+    if block.num_qubits <= params["native_block_size"]:
+        return [ block ]
 
     gate_size = get_decomposition_size( block.num_qubits )
 
