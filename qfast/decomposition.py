@@ -244,7 +244,7 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, fun_vals,
                          [ l.get_loc_vals( sess ) for l in layers ] )
 
             loss_values.append( loss )
-            logger.log( 0, loss )
+            logger.debug( "Loss: %f" % loss )
 
             if len( loss_values ) > 100:
                 min_value = np.min( loss_values[-100:] )

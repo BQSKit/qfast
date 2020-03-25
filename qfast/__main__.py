@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import numpy    as np
 import argparse as ap
@@ -94,7 +95,6 @@ if __name__ == "__main__":
                          help = "The learning rate for refinement." )
 
     parser.add_argument( "-v", "--verbose",
-                         type = int,
                          default = 0,
                          action = "count",
                          help = "Verbose output" )
@@ -155,14 +155,21 @@ if __name__ == "__main__":
                           ", add --qasm-file." )
 
     # Logging Init
+    handler = logging.StreamHandler( sys.stdout )
+
     if args.verbose >= 3:
-        logger.setLevel(0)
+        logger.setLevel( logging.DEBUG )
     elif args.verbose == 2:
+        handler.addFilter( lambda m: m.getMessage()[:4] != "Loss" )
         logger.setLevel( logging.DEBUG )
     elif args.verbose == 1:
         logger.setLevel( logging.INFO )
     elif args.verbose == 0:
         logger.setLevel( logging.CRITICAL )
+        logging.getLogger( "tensorflow" ).addFilter( lambda m: False )
+
+    handler.setLevel( logging.DEBUG )
+    logger.addHandler( handler )
 
     if args.decompose_only:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
