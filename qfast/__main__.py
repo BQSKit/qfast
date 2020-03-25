@@ -1,10 +1,15 @@
 import os
+import logging
 import numpy    as np
 import argparse as ap
 
 from .circuit import Circuit
 from .instantiation import *
 from .recombination import recombination
+
+
+logger = logging.getLogger( "qfast" )
+
 
 if __name__ == "__main__":
     description_info = "Synthesize a unitary matrix."
@@ -88,6 +93,12 @@ if __name__ == "__main__":
                          default = 1e-6,
                          help = "The learning rate for refinement." )
 
+    parser.add_argument( "-v", "--verbose",
+                         type = int,
+                         default = 0,
+                         action = "count",
+                         help = "Verbose output" )
+
     args = parser.parse_args()
 
     # True if we have to do everything
@@ -142,6 +153,16 @@ if __name__ == "__main__":
         if args.qasm_file is None:
             parser.error( "No qasm output file specified"
                           ", add --qasm-file." )
+
+    # Logging Init
+    if args.verbose >= 3:
+        logger.setLevel(0)
+    elif args.verbose == 2:
+        logger.setLevel( logging.DEBUG )
+    elif args.verbose == 1:
+        logger.setLevel( logging.INFO )
+    elif args.verbose == 0:
+        logger.setLevel( logging.CRITICAL )
 
     if args.decompose_only:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )

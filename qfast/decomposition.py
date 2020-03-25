@@ -2,6 +2,7 @@
 This module implements the main decomposition functions.
 """
 
+import logging
 import tensorflow as tf
 import numpy      as np
 import itertools  as it
@@ -12,6 +13,9 @@ from .locationmodel import LocationModel
 from .block import Block
 from .metrics import hilbert_schmidt_distance
 from .pauli import get_unitary_from_pauli_coefs, reset_tensor_cache
+
+
+logger = logging.getLogger( "qfast" )
 
 
 def decomposition ( block, **kwargs ):
@@ -134,8 +138,7 @@ def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
     depth = start_depth
     fun_vals = [ None ] * depth
     loc_vals = [ None ] * depth
-
-    # print( "Starting to search with %d layers" % layer_count )
+    logger.info( "Starting to search with %d gates." % depth )
 
     # Stride search over layer_count
     while ( True ):
@@ -146,19 +149,13 @@ def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
         success, fun_vals, loc_vals = result
 
         if success:
-
-            # if verbosity >= 1:
-            #     print( "Found a circuit with %d layers" % layer_count )
-
-            # circuit = result[1]
+            logger.info( "Found a circuit with %d gates." % depth )
             break
 
         fun_vals += [ None ] * depth_step
         loc_vals += [ None ] * depth_step
         depth += depth_step
-
-        # if verbosity >= 1:
-        #     print( "Added a layer, now: %d layers" % layer_count )
+        logger.info( "Added a gate, now at %d gates." % depth )
 
     # Remember good results
     found_fun_vals = fun_vals
@@ -167,9 +164,8 @@ def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
     # Search backwards for a shorter circuit
     for i in range( depth_step - 1 ):
         depth -= 1
+        logger.info( "Removing a layer, now at %d gates." % depth )
 
-        # if verbosity >= 1:
-        #     print( "Removing a layer, now: %d layers" % layer_count )
 
         result = fixed_depth_exploration( target, num_qubits, gate_size,
                                           fun_vals, loc_vals, lm,
@@ -178,12 +174,9 @@ def exploration ( target, num_qubits, gate_size, start_depth, depth_step,
         success, fun_vals, loc_vals = result
 
         if success:
-
-            # if verbosity >= 1:
-            #     print( "Found a circuit with %d layers" % layer_count )
-
             found_fun_vals = fun_vals
             found_loc_vals = loc_vals
+            logger.info( "Found a circuit with %d gates." % depth )
 
     return found_fun_vals, found_loc_vals
 
@@ -245,18 +238,13 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, fun_vals,
                 loss = sess.run( [ train_op, loss_fn ] )[1]
 
             if loss < exploration_distance:
-
-                # if verbosity >= 1:
-                #     print( "Found circuit with loss: %f" % loss )
-
+                logger.info( "Ending exploration at %f distance." % loss )
                 return ( True,
                          [ l.get_fun_vals( sess ) for l in layers ],
                          [ l.get_loc_vals( sess ) for l in layers ] )
 
             loss_values.append( loss )
-
-            # if verbosity >= 2:
-            #     print( loss )
+            logger.log( 0, loss )
 
             if len( loss_values ) > 100:
                 min_value = np.min( loss_values[-100:] )
@@ -264,6 +252,7 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, fun_vals,
 
                 # Plateau Detected
                 if max_value - min_value < learning_rate / 10:
+                    logger.debug( "Ending exploration at %f distance." % loss )
                     return ( False,
                              [ l.get_fun_vals( sess ) for l in layers ],
                              [ l.get_loc_vals( sess ) for l in layers ] )
@@ -274,6 +263,7 @@ def fixed_depth_exploration ( target, num_qubits, gate_size, fun_vals,
 
                 # Plateau Detected
                 if max_value - min_value < learning_rate:
+                    logger.debug( "Ending exploration at %f distance." % loss )
                     return ( False,
                              [ l.get_fun_vals( sess ) for l in layers ],
                              [ l.get_loc_vals( sess ) for l in layers ] )
@@ -325,6 +315,8 @@ def refinement ( target, num_qubits, gate_size, fun_vals, loc_fixed,
 
     with tf.Session() as sess:
         sess.run( init_op )
+        loss = sess.run( loss_fn )
+        logger.info( "Starting refinement at %f distance." % loss )
 
         for i in range( 10000 ):
             for j in range( 50 ):
@@ -334,9 +326,7 @@ def refinement ( target, num_qubits, gate_size, fun_vals, loc_fixed,
                 break
 
             loss_values.append( loss )
-
-            # if verbosity >= 2:
-            #     print( loss )
+            logger.log( 0, loss )
 
             if len( loss_values ) > 100:
                 min_value = np.min( loss_values[-100:] )
@@ -354,8 +344,7 @@ def refinement ( target, num_qubits, gate_size, fun_vals, loc_fixed,
                 if max_value - min_value < 1e-3:
                     break
 
-        # if verbosity >= 1:
-        #     print( "Refined circuit to %f error" % loss )
+        logger.info( "Ending refinement at %f distance." % loss )
 
         return [ l.get_fun_vals( sess ) for l in layers ]
 
