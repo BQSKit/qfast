@@ -29,6 +29,12 @@ def flip_circ ( circ ):
             circ_flip.u2( *gate[0].params, num_qubits - 1 - gate[1][0].index )
         elif gate[0].name == 'u1':
             circ_flip.u1( *gate[0].params, num_qubits - 1 - gate[1][0].index )
+        elif gate[0].name == 'rx':
+            circ_flip.rx( *gate[0].params, num_qubits - 1 - gate[1][0].index )
+        elif gate[0].name == 'ry':
+            circ_flip.ry( *gate[0].params, num_qubits - 1 - gate[1][0].index )
+        elif gate[0].name == 'rz':
+            circ_flip.rz( *gate[0].params, num_qubits - 1 - gate[1][0].index )
         elif gate[0].name == 'barrier':
             continue
         else:
