@@ -1,3 +1,7 @@
+"""
+This module implements qiskit's kak as a native tool plugin to QFAST.
+"""
+
 import qiskit
 import numpy as np
 
@@ -12,6 +16,7 @@ def get_native_block_size():
     """
 
     return 2
+
 
 def synthesize ( utry ):
     """
@@ -35,6 +40,13 @@ def synthesize ( utry ):
 
     if utry.shape[1] != 2 ** get_native_block_size():
         raise ValueError( "utry has incorrect dimensions." )
+
+    if ( not np.allclose( U.conj().T @ U, np.identity( len( U ) ),
+                          rtol = 0, atol = 1e-14 )
+         or
+         not np.allclose( U @ U.conj().T, np.identity( len( U ) ),
+                          rtol = 0, atol = 1e-14 ) ):
+        raise ValueError( "utry must be a unitary matrix." )
 
     circ = qiskit.QuantumCircuit( get_native_block_size() )
     circ.unitary( utry, [ 1, 0 ] )
