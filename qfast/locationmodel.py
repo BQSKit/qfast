@@ -67,6 +67,22 @@ def greedy_max_cut ( locations ):
     return buckets
 
 
+def lexicographical_cut ( locations ):
+    """
+    Partitions the locations into two buckets by cutting in half.
+
+    Args:
+        locations (Set[Tuple[int]]): The location set
+
+    Returns:
+        buckets (List[List[Tuple[int]]]): The bucketed locations
+    """
+
+    locations = list( locations )
+    n = len( locations )
+    return [ locations[:n//2], locations[n//2:] ]
+
+
 class LocationModel():
     """The LocationModel class."""
 
@@ -85,7 +101,7 @@ class LocationModel():
 
             bucketing_alg (Set[Tuple[int]] -> List[List[Tuple[int]]]):
                 Function that converts a set of locations into buckets
-                of locations. Defaults to max cut.
+                of locations. Defaults to lexicographical cut.
         """
 
         if num_qubits <= 0:
@@ -106,7 +122,7 @@ class LocationModel():
             raise ValueError( "Invalid cgraph supplied: %s.", str( cgraph ) )
 
         if bucketing_alg is None:
-            bucketing_alg = greedy_max_cut
+            bucketing_alg = lexicographical_cut
 
         self.num_qubits = num_qubits
         self.gate_size = gate_size
