@@ -57,6 +57,36 @@ if __name__ == "__main__":
                          default = 2,
                          help = "The block size to decompose to." )
 
+    parser.add_argument( "-s", "--start-depth", dest = "sd",
+                         type = int,
+                         default = 1,
+                         help = "The initial depth to start exploring from." )
+
+    parser.add_argument( "-d", "--depth-step", dest = "ds",
+                         type = int,
+                         default = 1,
+                         help = ( "The number of gates to append every"
+                                  "step of exploration." ) )
+
+    parser.add_argument( "-e", "--exploration-distance", dest = "ed",
+                         type = float,
+                         default = 0.01,
+                         help = "The distance tolerance for exploration." )
+
+    parser.add_argument( "-l", "--exploration-learning-rate", dest = "el",
+                         type = float,
+                         default = 0.01,
+                         help = "The learning rate for exploration." )
+
+    parser.add_argument( "-r", "--refinement-distance", dest = "rd",
+                         type = float,
+                         default = 1e-7,
+                         help = "The distance tolerance for refinement." )
+
+    parser.add_argument( "-j", "--refinement-learning-rate", dest = "rl",
+                         type = float,
+                         default = 1e-6,
+                         help = "The learning rate for refinement." )
 
     args = parser.parse_args()
 
@@ -116,7 +146,13 @@ if __name__ == "__main__":
     if args.decompose_only:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
         circ = Circuit( target )
-        circ.hierarchically_decompose( args.block_size )
+        circ.hierarchically_decompose( args.block_size,
+                                       start_depth = args.sd,
+                                       depth_step = args.ds,
+                                       exploration_distance = args.ed,
+                                       exploration_learning_rate = args.el,
+                                       refinement_distance = args.rd,
+                                       refinement_learning_rate = args.rl )
 
         if not os.path.isdir( args.unitary_dir ):
             os.makedirs( args.unitary_dir )
@@ -170,7 +206,13 @@ if __name__ == "__main__":
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
         circ = Circuit( target )
         block_size = get_native_tool( args.native_tool ).get_native_block_size()
-        circ.hierarchically_decompose( block_size )
+        circ.hierarchically_decompose( block_size,
+                                       start_depth = args.sd,
+                                       depth_step = args.ds,
+                                       exploration_distance = args.ed,
+                                       exploration_learning_rate = args.el,
+                                       refinement_distance = args.rd,
+                                       refinement_learning_rate = args.rl )
 
         qasm_list = [ instantiation( args.native_tool, block.utry )
                       for block in circ.blocks ]
