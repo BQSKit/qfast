@@ -67,6 +67,7 @@ class Circuit():
                 if block.num_qubits <= native_block_size:
                     new_block_list.append( block )
                 else:
+                    kwargs["native_block_size"] = native_block_size
                     new_block_list += decomposition( block, **kwargs )
 
             self.blocks = new_block_list

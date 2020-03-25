@@ -52,9 +52,13 @@ def decomposition ( block, **kwargs ):
     params["exploration_learning_rate" ] = 0.01
     params["refinement_distance" ] = 1e-7
     params["refinement_learning_rate" ] = 1e-6
+    params["native_block_size"] = 0
     params.update( kwargs )
 
     gate_size = get_decomposition_size( block.num_qubits )
+
+    if gate_size < params["native_block_size"]:
+        gate_size = params["native_block_size"]
 
     lm = LocationModel( block.num_qubits, gate_size )
 
