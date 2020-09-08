@@ -11,7 +11,7 @@ from .optimizers import *
 class Decomposer():
 
     def __init__ ( self, utry, target_gate_size = 2, model = "softpauli",
-                   hierarchy_fn = lambda x : x // 2, coupling_map = None ):
+                   hierarchy_fn = lambda x : x // 2 if x > 3 else 2, coupling_map = None ):
         self.utry = utry
         self.target_gate_size = target_gate_size
         self.hierarchy_fn = hierarchy_fn
