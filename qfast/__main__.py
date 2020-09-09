@@ -78,6 +78,11 @@ if __name__ == "__main__":
                          action = "count",
                          help = "Verbose output" )
 
+    parser.add_argument( "-m", "--model",
+                         type = str,
+                         default = "softpauli",
+                         help = "The model to use." )
+
     args = parser.parse_args()
 
     # True if we have to do everything
@@ -151,7 +156,7 @@ if __name__ == "__main__":
 
     if args.decompose_only:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
-        decomposer = Decomposer( target )
+        decomposer = Decomposer( target, model = args.model )
         gate_list = decomposer.decompose()
         # TODO Add parameters
         # TODO Change Pickle to unitary dump
@@ -176,7 +181,7 @@ if __name__ == "__main__":
 
     elif complete_qfast:
         target = np.loadtxt( args.unitary_file, dtype = np.complex128 )
-        decomposer = Decomposer( target )
+        decomposer = Decomposer( target, model = args.model )
         gate_list = decomposer.decompose()
         instantiater = Instantiater( args.native_tool )
         qasm_list = instantiater.instantiate( gate_list )

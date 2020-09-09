@@ -22,6 +22,8 @@ class Decomposer():
 
         if model == "softpauli":
             self.model = SoftPauliModel
+        elif model == "perm":
+            self.model = PermModel
 
     def get_utry ( self ):
         return self.utry
