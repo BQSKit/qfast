@@ -21,7 +21,7 @@ class Gate():
             location (tuple[int]): Gate location (set of qubits)
         """
 
-        if not is_unitary( utry, tol = 1e-14 ):
+        if not is_unitary( utry, tol = 1e-15 ):
             raise TypeError( "utry must be a valid unitary matrix." )
 
         if not isinstance( loc, tuple ):

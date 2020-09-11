@@ -4,15 +4,44 @@ import itertools as it
 from .gate import Gate
 from .topology import Topology
 
-from .utils import is_unitary
+from .utils import is_unitary, closest_unitary
 from .models import *
 from .optimizers import *
+
+import logging
+logger = logging.getLogger( "qfast" )
+
+import importlib
+import pkgutil
+
+
+import qfast.models as models
+import qfast.optimizers as optimizers
+
+
+_discovered_models = {
+    name: importlib.import_module( name )
+    for finder, name, ispkg
+    in pkgutil.iter_modules( models.__path__, models.__name__ + "." )
+}
+
+_discovered_optimizers = {
+
+print( _discovered_models )
 
 class Decomposer():
 
     def __init__ ( self, utry, target_gate_size = 2, model = "softpauli",
-                   hierarchy_fn = lambda x : x // 2 if x > 3 else 2, coupling_map = None ):
-        self.utry = utry
+                   hierarchy_fn = lambda x : x // 2 if x > 3 else 2,
+                   coupling_map = None ):
+
+        if not is_unitary( utry, tol = 1e-15 ):
+            logger.warning( "Unitary inputted is not a unitary upto double precision." )
+            logger.warning( "Proceeding with closest unitary to input." )
+            self.utry = closest_unitary( utry )
+        else:
+            self.utry = utry
+
         self.target_gate_size = target_gate_size
         self.hierarchy_fn = hierarchy_fn
         self.num_qubits = int( np.log2( len( utry ) ) )

@@ -166,7 +166,8 @@ def synthesize ( utry ):
 
     return qasm_out
 
-
+import logging
+logging.getLogger( "qfast" ).setLevel( logging.DEBUG )
 # Synthesize the qft4 unitary and print results
 qasm = synthesize( qft4 )
 print( qasm )
