@@ -1,3 +1,4 @@
+import scipy as sp
 import numpy as np
 
 def is_matrix ( M ):
@@ -166,3 +167,29 @@ def softmax ( x, beta = 20 ):
     shiftx = beta * ( x - np.max( x ) )
     exps = np.exp( shiftx )
     return exps / np.sum(exps)
+
+def closest_unitary ( A ):
+    """
+    Calculate the closest unitary to a given matrix.
+
+
+    Calculate the unitary matrix U that is closest with respect to the
+    operator norm distance to the general matrix A.
+
+    D.M.Reich. “Characterisation and Identification of Unitary Dynamics
+    Maps in Terms of Their Action on Density Matrices”
+
+    Args:
+        A (np.ndarray): The matrix input.
+
+    Returns:
+        (np.ndarray): The unitary matrix closest to A.
+        Return U as a numpy matrix.
+    """
+
+    if not is_square_matrix( A ):
+        raise TypeError( "A must be a square matrix." )
+
+    V, __, Wh = sp.linalg.svd( A )
+    return V @ Wh
+
