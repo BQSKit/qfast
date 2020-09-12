@@ -1,6 +1,76 @@
 import scipy as sp
 import numpy as np
 
+
+def is_valid_location ( location, num_qubits = None ):
+    """
+    Checks if the location is valid.
+
+    Args:
+        location (Tuple[int]): The location to check.
+
+        num_qubits (int or None): The total number of qubits. All qubits
+            should be less than this. If None, don't check.
+
+    Returns:
+        (bool): Valid or not
+    """
+
+    if not isinstance( location, tuple ):
+        return False
+
+    if not all( [ isinstance( qubit, int ) for qubit in location ] ):
+        return False
+
+    if len( location ) != len( set( location ) ):
+        return False
+
+    if num_qubits is not None:
+        if not all( [ qubit < num_qubits for qubit in location ] ):
+            return False
+
+    return True
+
+
+def is_valid_locations ( locations, num_qubits = None, gate_size = None ):
+    """
+    Checks if locations is valid.
+
+    Args:
+        locations (List[Tuple[int]]): The locations to check.
+
+        num_qubits (int or None): The total number of qubits. All qubits
+            should be less than this. If None, don't check.
+
+        gate_size (int or None): The expected size of locations.
+            If None, then all locations are to be equal in size."
+
+    Returns:
+        (bool): Valid or not
+    """
+
+    if not isinstance( locations, list ):
+        return False
+
+    if len( locations ) == 0:
+        return True
+
+    if not all( [ is_valid_location( location, num_qubits )
+                  for location in locations ] ):
+        return False
+
+    if gate_size is None:
+        gate_size = len( locations[0] )
+
+    if not all( [ len( location ) == gate_size for location in locations ] ):
+        return False
+
+    if len( locations ) != len( set( locations ) ):
+        return False
+
+    return True
+
+
 def is_matrix ( M ):
     """Checks if M is a matrix."""
 
