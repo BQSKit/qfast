@@ -15,8 +15,9 @@ modelsubclasses = {}
 optimizersubclasses = {}
 nativetoolsubclasses = {}
 import plugins
+
+# Main API
 from .decomposition.decomposer import Decomposer
 from .instantiation.instantiater import Instantiater
-#from .plugins import get_native_tools
 from .recombination.combiner import Combiner
 

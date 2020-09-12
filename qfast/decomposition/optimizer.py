@@ -25,7 +25,7 @@ class OptimizerMeta ( abc.ABCMeta ):
 class Optimizer ( metaclass = OptimizerMeta ):
     """The Optimizer abstract base class."""
     
-    @abc.bstractmethod
+    @abc.abstractmethod
     def minimize_coarse ( self, objective_fn, xin ):
         """
         A coarse minimization call.

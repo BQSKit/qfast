@@ -53,7 +53,8 @@ class CircuitModel ( metaclass = ModelMeta ):
 
         self.gate_size = gate_size
 
-        if not utils.is_valid_locations( locations, num_qubits, gate_size ):
+        if not utils.is_valid_locations( locations, self.num_qubits,
+                                         self.gate_size ):
             raise TypeError( "Invalid locations" )
 
         self.locations = locations

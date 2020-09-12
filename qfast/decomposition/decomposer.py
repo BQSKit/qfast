@@ -15,6 +15,7 @@ logger = logging.getLogger( "qfast" )
 class Decomposer():
 
     def __init__ ( self, utry, target_gate_size = 2, model = "SoftPauliModel",
+                   optimizer = "LFBGSOptimizer",
                    hierarchy_fn = lambda x : x // 2 if x > 3 else 2,
                    coupling_map = None ):
 
@@ -33,9 +34,14 @@ class Decomposer():
         self.gate_list = []
 
         if model not in plugins.get_models():
-            raise RuntimeError( f"Cannot find {model} decomposition model." )
+            raise RuntimeError( f"Cannot find decomposition model: {model}" )
 
         self.model = plugins.get_model( model )
+
+        if optimizer not in plugins.get_optimizers():
+            raise RuntimeError( f"Cannot find optimizer: {optimizer}" )
+
+        self.optimizer = plugins.get_optimizer( optimizer )
 
     def get_utry ( self ):
         return self.utry
@@ -81,7 +87,7 @@ class Decomposer():
                 else:
                     next_gate_size = self.hierarchy_fn( gate.get_size() )
                     t = self.topology.get_locations( next_gate_size )
-                    m = self.model( self.utry, next_gate_size, t, LFBGSOptimizer() )
+                    m = self.model( self.utry, next_gate_size, t, self.optimizer() )
                     new_gate_list += m.solve()
 
             self.gate_list = new_gate_list
