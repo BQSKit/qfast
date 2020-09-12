@@ -5,53 +5,54 @@ This module implements qiskit's kak as a native tool plugin to QFAST.
 import qiskit
 import numpy as np
 
-
-def get_native_block_size():
-    """
-    The maximum size of a unitary matrix (in qubits) that can be
-    decomposed with this module.
-
-    Returns:
-        (int): The qubit count this module can handle.
-    """
-
-    return 2
+from qfast import utils
+from qfast.instantiation import nativetool
 
 
-def synthesize ( utry ):
-    """
-    Synthesis function with QISKit's KAK implementation.
+class KAKTool ( nativetool.NativeTool ):
+    """Synthesize tool built on QISKit's KAK implementation."""
 
-    Args:
-        utry (np.ndarray): The unitary matrix to synthesize.
+    def get_maximum_size ( self ):
+        """
+        The maximum size of a unitary matrix (in qubits) that can be
+        decomposed with this tool.
 
-    Returns
-        qasm (str): The synthesized QASM output.
-    """
+        Returns:
+            (int): The qubit count this tool can handle.
+        """
 
-    if not isinstance( utry, np.ndarray ):
-        raise TypeError( "utry must be a np.ndarray." )
+        return 2
 
-    if len( utry.shape ) != 2:
-        raise TypeError( "utry must be a matrix." )
+    def synthesize ( self, utry ):
+        """
+        Synthesis function with QISKit's KAK implementation.
 
-    if utry.shape[0] != 2 ** get_native_block_size():
-        raise ValueError( "utry has incorrect dimensions." )
+        Args:
+            utry (np.ndarray): The unitary to synthesize.
 
-    if utry.shape[1] != 2 ** get_native_block_size():
-        raise ValueError( "utry has incorrect dimensions." )
+        Returns
+            qasm (str): The synthesized QASM output.
 
-    if ( not np.allclose( utry.conj().T @ utry, np.identity( len( utry ) ),
-                          rtol = 0, atol = 1e-14 )
-         or
-         not np.allclose( utry @ utry.conj().T, np.identity( len( utry ) ),
-                          rtol = 0, atol = 1e-14 ) ):
-        raise ValueError( "utry must be a unitary matrix." )
+        Raises:
+            TypeError: If utry is not a valid unitary.
 
-    circ = qiskit.QuantumCircuit( get_native_block_size() )
-    circ.unitary( utry, [ 1, 0 ] )
-    circ = qiskit.compiler.transpile( circ, basis_gates = ['u3', 'cx'],
-                                      optimization_level = 3 )
-    return circ.qasm()
+            ValueError: If the utry has invalid dimensions.
+        """
 
+        if not utils.is_unitary( utry ):
+            raise TypeError( "utry must be a valid unitary." )
+
+        if utry.shape[0] > 2 ** get_native_block_size():
+            raise ValueError( "utry has incorrect dimensions." )
+
+        if utry.shape[0] == 4:
+            circ = qiskit.QuantumCircuit( 2 )
+            circ.unitary( utry, [ 1, 0 ] )
+        else:
+            circ = qiskit.QuantumCircuit( 1 )
+            circ.unitary( utry )
+
+        circ = qiskit.compiler.transpile( circ, basis_gates = ['u3', 'cx'],
+                                          optimization_level = 3 )
+        return circ.qasm()
 
