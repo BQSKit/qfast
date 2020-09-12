@@ -8,14 +8,24 @@ All optimizer plugins must extend this class and implement the
 functionality outlined here.
 """
 
+import abc
+import qfast
 
-from abc import ABC, abstractmethod
+
+class OptimizerMeta ( abc.ABCMeta ):
+    """The Optimizer Metaclass."""
+
+    def __init__ ( cls, name, bases, attr ):
+        """Automatically registers optimizer plugins with qfast."""
+
+        qfast.optimizersubclasses[name] = cls
+        super().__init__( name, bases, attr )
 
 
-class Optimizer ( ABC ):
+class Optimizer ( metaclass = OptimizerMeta ):
     """The Optimizer abstract base class."""
     
-    @abstractmethod
+    @abc.bstractmethod
     def minimize_coarse ( self, objective_fn, xin ):
         """
         A coarse minimization call.
@@ -39,7 +49,7 @@ class Optimizer ( ABC ):
         """
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def minimize_fine ( self, objective_fn, xin ):
         """
         A fine minimization call.
