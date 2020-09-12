@@ -1,6 +1,6 @@
 import scipy.optimize as opt
 
-from qfast.optimizer import Optimizer
+from qfast.decomposition.optimizer import Optimizer
 
 class LFBGSOptimizer( Optimizer ):
 

@@ -1,7 +1,7 @@
 import numpy as np
 from functools import reduce
 
-from qfast.circuitmodel import CircuitModel
+from qfast.decomposition.circuitmodel import CircuitModel
 from qfast.gate import Gate
 from .genericgate import GenericGate
 from .fixedgate import FixedGate

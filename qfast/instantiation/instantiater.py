@@ -6,27 +6,6 @@ import importlib
 import pkgutil
 
 
-import qfast.native as native
-
-
-_discovered_tools = {
-    name: importlib.import_module( name )
-    for finder, name, ispkg
-    in pkgutil.iter_modules( native.__path__, native.__name__ + "." )
-}
-
-
-def list_native_tools():
-    """
-    List the discovered native tools.
-
-    Returns
-        (List[str]): List of discovered tools
-    """
-
-    return [ tool.split('.')[-1] for tool in _discovered_tools.keys() ]
-
-
 class Instantiater():
 
     def __init__ ( self, tool ):

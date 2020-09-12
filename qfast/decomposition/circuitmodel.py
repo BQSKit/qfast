@@ -1,8 +1,15 @@
-from abc import ABC, abstractmethod
+import abc
 
 import numpy as np
+import qfast
 
-class CircuitModel ( ABC ):
+class ModelMeta ( abc.ABCMeta ):
+
+    def __init__ ( cls, name, bases, attr ):
+        qfast.modelsubclasses[name] = cls
+        super().__init__( name, bases, attr )
+
+class CircuitModel ( metaclass = ModelMeta ):
     
     def __init__ ( self, utry, gate_size, locations, optimizer ):
         self.utry = utry
@@ -12,7 +19,7 @@ class CircuitModel ( ABC ):
         self.locations = locations
         self.optimizer = optimizer
     
-    @abstractmethod
+    @abc.abstractmethod
     def solve ( self ):
         pass
 

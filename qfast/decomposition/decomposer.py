@@ -1,37 +1,20 @@
 import numpy as np
 import itertools as it
 
-from .gate import Gate
-from .topology import Topology
+from qfast import plugins
+from qfast.gate import Gate
+from qfast.topology import Topology
 
-from .utils import is_unitary, closest_unitary
+from qfast.utils import is_unitary, closest_unitary
 from .models import *
 from .optimizers import *
 
 import logging
 logger = logging.getLogger( "qfast" )
 
-import importlib
-import pkgutil
-
-
-import qfast.models as models
-import qfast.optimizers as optimizers
-
-
-_discovered_models = {
-    name: importlib.import_module( name )
-    for finder, name, ispkg
-    in pkgutil.iter_modules( models.__path__, models.__name__ + "." )
-}
-
-_discovered_optimizers = {
-
-print( _discovered_models )
-
 class Decomposer():
 
-    def __init__ ( self, utry, target_gate_size = 2, model = "softpauli",
+    def __init__ ( self, utry, target_gate_size = 2, model = "SoftPauliModel",
                    hierarchy_fn = lambda x : x // 2 if x > 3 else 2,
                    coupling_map = None ):
 
@@ -49,10 +32,10 @@ class Decomposer():
 
         self.gate_list = []
 
-        if model == "softpauli":
-            self.model = SoftPauliModel
-        elif model == "perm":
-            self.model = PermModel
+        if model not in plugins.get_models():
+            raise RuntimeError( f"Cannot find {model} decomposition model." )
+
+        self.model = plugins.get_model( model )
 
     def get_utry ( self ):
         return self.utry
