@@ -17,7 +17,7 @@ class Decomposer():
     def __init__ ( self, utry, target_gate_size = 2, model = "SoftPauliModel",
                    optimizer = "LFBGSOptimizer",
                    hierarchy_fn = lambda x : x // 2 if x > 3 else 2,
-                   coupling_map = None ):
+                   coupling_graph = None ):
 
         if not is_unitary( utry, tol = 1e-15 ):
             logger.warning( "Unitary inputted is not a unitary upto double precision." )
@@ -29,7 +29,7 @@ class Decomposer():
         self.target_gate_size = target_gate_size
         self.hierarchy_fn = hierarchy_fn
         self.num_qubits = int( np.log2( len( utry ) ) )
-        self.topology = Topology( self.num_qubits, coupling_map )
+        self.topology = Topology( self.num_qubits, coupling_graph )
 
         self.gate_list = []
 

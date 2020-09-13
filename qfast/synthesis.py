@@ -1,0 +1,53 @@
+"""This module implements a basic synthesize function."""
+
+from qfast import Decomposer, Instantiater, Combiner, plugins
+
+def synthesize ( utry, model = "SoftPauliModel", optimizer = "LFBGSOptimizer",
+                 tool = "KAKTool",
+                 hierarchy_fn = lambda x : x // 2 if x > 3 else 2,
+                 coupling_graph = None ):
+    """
+    Synthesize a unitary matrix and return qasm code using QFAST.
+
+    Args:
+        utry (np.ndarray): The unitary matrix to synthesize.
+
+        model (str): The model to use during decomposition.
+
+        optimizer (str): The optimizer to use during decomposition.
+
+        tool (str): The native tool to use during instantiation.
+
+        hierarchy_fn (callable): This function determines the
+            decomposition hierarchy.
+
+        coupling_graph (
+
+    Returns:
+        (str): Qasm code implementing utry.
+    """
+
+    # Get target_gate_size for decomposition
+    if tool not in plugins.get_native_tools():
+        raise RuntimeError( "Cannot find native tool." )
+
+    target_gate_size = plugins.get_tool( tool )().get_maximum_size()
+
+    # Decompose the big input unitary into smaller unitary gates.
+    decomposer = Decomposer( utry, target_gate_size = target_gate_size,
+                             model = model,
+                             optimizer = optimizer,
+                             coupling_graph = coupling_graph,
+                             hierarchy_fn = hierarchy_fn )
+    gate_list = decomposer.decompose()
+
+    # Instantiate the small unitary gates into native code
+    instantiater = Instantiater( tool )
+    qasm_list = instantiater.instantiate( gate_list ) 
+
+    # Recombine all small circuits into one large output
+    combiner = Combiner( optimization = True )
+    qasm_out = combiner.combine( qasm_list )
+
+    return qasm_out
+
