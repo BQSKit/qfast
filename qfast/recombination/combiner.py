@@ -7,6 +7,13 @@ from qiskit import *
 class Combiner():
 
     def __init__ ( self, optimization = True ):
+        """
+        Initializes a combiner
+
+        Args:
+            optimization (bool): Whether or not optimization is on.
+        """
+
         self.optimization = optimization
 
     def combine ( self, qasm_list ):
@@ -72,5 +79,6 @@ class Combiner():
                     raise ValueError( "QASM must be in \'u1, u2, u3, cx\' basis." )
 
         out_circ = qiskit.compiler.transpile( out_circ, basis_gates = ['u3', 'cx'],
-                                              optimization_level = 3 )
+                                              optimization_level = 3 if self.optimization else 0 )
         return out_circ.qasm()
+

@@ -1,6 +1,6 @@
 """This module implements a basic synthesize function."""
 
-from qfast import Decomposer, Instantiater, Combiner, plugins
+from qfast import Decomposer, Instantiater, Combiner, plugins, utils
 
 def synthesize ( utry, model = "SoftPauliModel", optimizer = "LFBGSOptimizer",
                  tool = "KAKTool",
@@ -21,11 +21,21 @@ def synthesize ( utry, model = "SoftPauliModel", optimizer = "LFBGSOptimizer",
         hierarchy_fn (callable): This function determines the
             decomposition hierarchy.
 
-        coupling_graph (
+        coupling_graph (None or list[tuple[int]]): Determines the
+            connection of qubits. If none, will be set to all-to-all.
 
     Returns:
         (str): Qasm code implementing utry.
+
+    Raises:
+        TypeError: If the coupling_graph is invalid.
+
+        RuntimeError: If the native tool cannot be found.
     """
+
+    if coupling_graph is not None:
+        if not utils.is_valid_coupling_graph( coupling_graph ):
+            raise TypeError( "The specified coupling graph is invalid." )
 
     # Get target_gate_size for decomposition
     if tool not in plugins.get_native_tools():

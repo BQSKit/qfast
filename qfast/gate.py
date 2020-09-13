@@ -35,21 +35,6 @@ class Gate():
 
         self.location = location
 
-    def get_utry ( self ):
-        """Gets the gate's unitary."""
-
-        return self.utry
-
-    def get_location ( self ):
-        """Gets the gate's location."""
-
-        return self.location
-
-    def get_size ( self ):
-        """Gets the gate's size in qubits."""
-
-        return self.num_qubits
-
     def __str__ ( self ):
         """Gets the gate's string representation."""
 
