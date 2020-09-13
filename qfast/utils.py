@@ -2,6 +2,48 @@ import scipy as sp
 import numpy as np
 
 
+def is_valid_coupling_graph ( coupling_graph, num_qubits = None ):
+    """
+    Checks if the coupling graph is valid.
+
+    Args:
+        coupling_graph (List[Tuple[int]]): The coupling graph to check.
+
+        num_qubits (int or None): The total number of qubits. All qubits
+            should be less than this. If None, don't check.
+
+    Returns:
+        (bool): Valid or not
+    """
+
+    if not isinstance( coupling_graph, list ):
+        return False
+
+    if len( coupling_graph ) == 0:
+        return True
+
+    if not all( [ isinstance( pair, tuple ) for pair in coupling_graph ] ):
+        return False
+
+    if not all( [ len( pair ) == 2 for pair in coupling_graph ] ):
+        return False
+
+    if num_qubits is not None:
+        if not all( [ qubit < num_qubits
+                      for pair in coupling_graph
+                      for qubit in pair ] ):
+            return False
+
+    if len( coupling_graph ) != len( set( coupling_graph ) ):
+        return False
+
+    if not all( [ len( pair ) == len( set( pair ) )
+                  for pair in coupling_graph ] ):
+        return False
+
+    return True
+
+
 def is_valid_location ( location, num_qubits = None ):
     """
     Checks if the location is valid.
