@@ -1,20 +1,45 @@
 """
-This module implements the functions for the instantiation phase.
+This module implements the Instantiater class.
+
+The instantiater uses a native tool to convert small generic gates
+to a native gate set.
 """
 
-import importlib
-import pkgutil
+
+from qfast import plugins
 
 
 class Instantiater():
+    """The Instantiater Class."""
 
     def __init__ ( self, tool ):
-        if "qfast.native." + tool not in _discovered_tools:
-            raise ValueError( "The native tool specified was not found." )
+        """
+        Construct an instantiater with a native tool.
 
-        self.tool = _discovered_tools[ "qfast.native." + tool ]
+        Args:
+            tool (str): The name of the native tool to use.
+
+        Raises:
+            RuntimeError: If the native tool cannot be found.
+        """
+
+        if model not in plugins.get_native_tools():
+            raise RuntimeError( f"Cannot find native tool: {tool}" )
+
+        self.tool = plugins.get_native_tool( tool )()
 
     def instantiate ( self, gate_list ):
+        """
+        Perform the instantiation phase.
+
+        Args:
+            gate_list (list[Gates]): The list of generic gates.
+
+        Returns:
+            (list[tuple[str, tuple[int]]]): List of qasm and
+                gate locations.
+        """
+
         qasm_list = []
 
         for gate in gate_list:
