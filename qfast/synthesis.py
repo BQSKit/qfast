@@ -41,7 +41,7 @@ def synthesize ( utry, model = "SoftPauliModel", optimizer = "LFBGSOptimizer",
     if tool not in plugins.get_native_tools():
         raise RuntimeError( "Cannot find native tool." )
 
-    target_gate_size = plugins.get_tool( tool )().get_maximum_size()
+    target_gate_size = plugins.get_native_tool( tool )().get_maximum_size()
 
     # Decompose the big input unitary into smaller unitary gates.
     decomposer = Decomposer( utry, target_gate_size = target_gate_size,

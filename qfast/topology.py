@@ -35,7 +35,7 @@ class Topology:
 
         self.coupling_graph = coupling_graph
         self.num_qubits = num_qubits
-        self.topology_cache = {}
+        self.cache = {}
 
         self.adjlist = [ [] for i in range( self.num_qubits ) ]
         for q0, q1 in coupling_graph:
@@ -66,8 +66,8 @@ class Topology:
         if gate_size <= 0:
             raise ValueError( "The gate_size is nonpositive." )
 
-        if gate_size in self.topology_cache:
-            return self.topology_cache[ gate_size ]
+        if gate_size in self.cache:
+            return self.cache[ gate_size ]
         
         locations = []
 
@@ -85,8 +85,8 @@ class Topology:
                 frontier = frontier[1:]
 
             if len( seen ) == len( group ):
-                topology.append( group )
+                locations.append( group )
 
-        self.topology_cache[ gate_size ] = topology
-        return topology
+        self.cache[ gate_size ] = locations
+        return locations
 

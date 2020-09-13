@@ -23,7 +23,7 @@ class Instantiater():
             RuntimeError: If the native tool cannot be found.
         """
 
-        if model not in plugins.get_native_tools():
+        if tool not in plugins.get_native_tools():
             raise RuntimeError( f"Cannot find native tool: {tool}" )
 
         self.tool = plugins.get_native_tool( tool )()
@@ -44,7 +44,7 @@ class Instantiater():
 
         for gate in gate_list:
             qasm = self.tool.synthesize( gate.utry )
-            qasm_list.append( ( qasm, gate.get_location() ) )
+            qasm_list.append( ( qasm, gate.location ) )
 
         return qasm_list
 

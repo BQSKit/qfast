@@ -14,10 +14,9 @@ _logger.addHandler( _handler )
 modelsubclasses = {}
 optimizersubclasses = {}
 nativetoolsubclasses = {}
-import plugins
 
 # Main API
 from .decomposition.decomposer import Decomposer
 from .instantiation.instantiater import Instantiater
 from .recombination.combiner import Combiner
-
+from .synthesis import synthesize

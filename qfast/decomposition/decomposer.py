@@ -5,16 +5,18 @@ The decomposer uses a circuit model to break a large unitary into
 smaller ones.
 """
 
+
 import numpy as np
 import itertools as it
 
 from qfast import plugins
-from qfast import gate
-from qfast import topology
 from qfast import utils
+from qfast.gate import Gate
+from qfast.topology import Topology
 
 import logging
 logger = logging.getLogger( "qfast" )
+
 
 class Decomposer():
 
@@ -61,7 +63,7 @@ class Decomposer():
 
         self.target_gate_size = target_gate_size
         self.hierarchy_fn = hierarchy_fn
-        self.topology = topology.Topology( self.num_qubits, coupling_graph )
+        self.topology = Topology( self.num_qubits, coupling_graph )
 
         if model not in plugins.get_models():
             raise RuntimeError( f"Cannot find decomposition model: {model}" )
@@ -83,7 +85,7 @@ class Decomposer():
                 or equal to the target gate size.
         """
 
-        gate_list = [ gate.Gate( self.utry, tuple( range( self.num_qubits ) ) ) ] 
+        gate_list = [ Gate( self.utry, tuple( range( self.num_qubits ) ) ) ] 
 
         while any( [ gate.num_qubits > self.target_gate_size
                      for gate in gate_list ] ):

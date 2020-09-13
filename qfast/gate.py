@@ -30,7 +30,7 @@ class Gate():
         self.utry = utry
         self.num_qubits = int( np.log2( len( self.utry ) ) )
 
-        if not utils.is_valid_location( location, self.num_qubits ):
+        if not utils.is_valid_location( location ):
             raise TypeError( "Invalid location." )
 
         self.location = location
