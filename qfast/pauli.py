@@ -1,9 +1,4 @@
-"""
-This module implements a Pauli Operator Library.
-
-The QFAST Compiler relies on pauli operators tremendously.
-All the necessary objects and functions are implemented in this library.
-"""
+"""This module implements pauli operations."""
 
 import scipy
 import numpy      as np
@@ -42,7 +37,7 @@ def get_norder_paulis ( n ):
     """
 
     if n < 0:
-        raise ValueError( "n must be a dimension greater than or equal to 0." )
+        raise ValueError( "n must be nonnegative" )
 
     if len( _norder_paulis_map ) > n:
         return _norder_paulis_map[n]
@@ -78,7 +73,7 @@ def get_pauli_n_qubit_projection ( n, q_set ):
         raise ValueError( "Qubit indices must be in [0, n).")
 
     if len( q_set ) != len( set( q_set ) ):
-        raise ValueError( "Qubit indices cannot be duplicates." )
+        raise ValueError( "Qubit indices cannot have duplicates." )
 
     if len( q_set ) == 0:
         raise ValueError( "Need atleast one qubit index." )
@@ -100,103 +95,3 @@ def get_pauli_n_qubit_projection ( n, q_set ):
 
     return np.array( pauli_n_qubit )
 
-'''
-
-
-def get_unitary_from_pauli_coefs ( pauli_coefs ):
-    """
-    Convert a pauli expansion to a unitary matrix.
-
-    Args:
-        pauli_coefs (List[float]): Coefficient of Pauli matrices
-
-    Returns:
-        (np.ndarray): Unitary Matrix computed from the Pauli coefficients
-    """
-
-    num_qubits = int( np.log2( len( pauli_coefs ) ) / 2 )
-    sigma = get_norder_paulis( num_qubits )
-
-    if len( sigma ) != len( pauli_coefs ):
-        raise ValueError( "Invalid pauli_coefs list." )
-
-    H = pauli_dot_product( pauli_coefs, sigma )
-    return scipy.linalg.expm( 1j * H )
-
-
-def unitary_log_no_i ( U ):
-    """
-    Solves for H in U = e^{iH}
-
-    Args:
-        U (np.ndarray): The unitary to decompose
-
-    Returns:
-        H (np.ndarray): e^{iH} = U
-    """
-
-    if ( not np.allclose( U.conj().T @ U, np.identity( len( U ) ),
-                          rtol = 0, atol = 1e-14 )
-         or
-         not np.allclose( U @ U.conj().T, np.identity( len( U ) ),
-                          rtol = 0, atol = 1e-14 ) ):
-        raise ValueError( "U must be a unitary matrix." )
-
-    T, Z = scipy.linalg.schur( U, output = 'complex' )
-    assert( np.allclose( Z @ T @ Z.conj().T, U ) )
-    H = np.diag( np.log( np.diagonal( T ) ) )
-    H = -1j*H
-    H = np.matmul( np.matmul( Z, H ), Z.conj().T )
-    return H
-
-
-def unitary_log_no_i_eig ( U ):
-    """
-    Solves for H in U = e^{iH}
-
-    Args:
-        U (np.ndarray): The unitary to decompose
-
-    Returns:
-        H (np.ndarray): e^{iH} = U
-    """
-
-    if ( not np.allclose( U.conj().T @ U, np.identity( len( U ) ),
-                          rtol = 0, atol = 1e-14 )
-         or
-         not np.allclose( U @ U.conj().T, np.identity( len( U ) ),
-                          rtol = 0, atol = 1e-14 ) ):
-        raise ValueError( "U must be a unitary matrix." )
-
-    T, Z = scipy.linalg.eig( U )
-    angles = -1j * np.log( T )
-    H = np.diag( angles )
-    H = np.matmul( np.matmul( Z, H ), Z.conj().T )
-    return H
-
-
-def pauli_expansion ( H ):
-    """
-    Computes a Pauli expansion of the hermitian matrix H.
-
-    Args:
-        H (np.ndarray): The hermitian matrix
-
-    Returns:
-        X (list of floats): The coefficients of a Pauli expansion for H,
-                            i.e., X dot Sigma = H where Sigma is
-                            Pauli matrices of same size of H
-    """
-
-    if not np.allclose( H, H.conj().T, rtol = 0, atol = 1e-14 ):
-        raise ValueError( "H must be hermitian." )
-
-    # Change basis of H to Pauli Basis (solve for coefficients -> X)
-    n = int( np.log2( len( H ) ) )
-    paulis = get_norder_paulis( n )
-    flatten_paulis = [ np.reshape( pauli, 4 ** n ) for pauli in paulis ]
-    flatten_H      = np.reshape( H, 4 ** n )
-    A = np.stack( flatten_paulis, axis = -1 )
-    X = np.real( np.matmul( np.linalg.inv( A ), flatten_H ) )
-    return X
-'''

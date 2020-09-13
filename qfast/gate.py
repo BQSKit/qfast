@@ -6,87 +6,57 @@ A gate is a unitary operation applied to a set of qubits.
 
 import numpy as np
 
-from .utils import is_unitary
+from qfast import utils
 
 class Gate():
     """The Gate Class."""
 
-    def __init__ ( self, utry, loc ):
+    def __init__ ( self, utry, location ):
         """
         Gate Class Constructor
 
         Args:
-            utry (np.ndarray): Unitary
+            utry (np.ndarray): The gate's unitary operation.
 
-            location (tuple[int]): Gate location (set of qubits)
+            location (tuple[int]): The set of qubits the gate acts on.
+
+        Raises:
+            TypeError: If unitary or location are invalid.
         """
 
-        if not is_unitary( utry, tol = 1e-15 ):
-            raise TypeError( "utry must be a valid unitary matrix." )
-
-        if not isinstance( loc, tuple ):
-            raise TypeError( "loc must be a location." )
-
-        if not all( isinstance( q, int ) for q in loc ):
-            raise TypeError( "loc must be a location." )
-
-        if not len( loc ) == len( set( loc ) ):
-            raise TypeError( "loc must be a valid location." )
-
-        if 2 ** len( loc ) != utry.shape[0]:
-            raise ValueError( "loc and utry have incompatible dimensions." )
+        if not utils.is_unitary( utry, tol = 1e-15 ):
+            raise TypeError( "Invalid unitary." )
 
         self.utry = utry
-        self.loc  = loc
-        self.num_qubits = len( loc )
+        self.num_qubits = int( np.log2( len( self.utry ) ) )
+
+        if not utils.is_valid_location( location, self.num_qubits ):
+            raise TypeError( "Invalid location." )
+
+        self.location = location
 
     def get_utry ( self ):
-        """
-        Gets the gate's unitary.
-
-        Returns:
-            (np.ndarray): Gate's unitary
-        """
+        """Gets the gate's unitary."""
 
         return self.utry
 
     def get_location ( self ):
-        """
-        Gets the gate's location.
+        """Gets the gate's location."""
 
-        Returns:
-            (Tuple[int]): Gate's location
-        """
-
-        return self.loc
+        return self.location
 
     def get_size ( self ):
-        """
-        Gets the gate's size in qubits.
-
-        Returns:
-            (int): Gate's size
-        """
+        """Gets the gate's size in qubits."""
 
         return self.num_qubits
 
     def __str__ ( self ):
-        """
-        Gets the gate's string representation.
-
-        Returns:
-            (str): Gate's string representation
-        """
+        """Gets the gate's string representation."""
 
         return str( self.loc ) + ":" + str( self.utry )
 
     def __repr__ ( self ):
-        """
-        Gets a simple gate string representation.
-
-        Returns:
-            (str): Gate's simple string representation
-        """
+        """Gets a simple gate string representation."""
 
         return str( self.loc )           \
                + ": [["                    \

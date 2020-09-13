@@ -1,3 +1,5 @@
+"""This module implements permutation-building functions."""
+
 import numpy as np
 import sympy.combinatorics as cb
 

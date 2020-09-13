@@ -1,3 +1,5 @@
+"""Plugin module is a central point of access for all loaded plugins."""
+
 import importlib
 import pkgutil
 
