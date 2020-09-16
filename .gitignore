@@ -1,3 +1,4 @@
 *.qasm
 *.unitary
 *.egg-info
+*.checkpoints

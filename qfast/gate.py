@@ -24,7 +24,7 @@ class Gate():
             TypeError: If unitary or location are invalid.
         """
 
-        if not utils.is_unitary( utry, tol = 1e-15 ):
+        if not utils.is_unitary( utry, tol = 1e-14 ):
             raise TypeError( "Invalid unitary." )
 
         self.utry = utry
