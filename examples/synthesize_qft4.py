@@ -4,8 +4,7 @@ Example showing how to synthesize a 4-qubit QFT program using QFAST.
 
 import numpy as np
 
-from qfast import *
-
+from qfast import synthesize
 
 # The 4-qubit QFT unitary matrix.
 qft4 = np.array(
@@ -139,35 +138,9 @@ qft4 = np.array(
    0.176776695296637+0.176776695296637j,  0.230969883127822+0.095670858091272j]]
 )
 
+# # Enable Logging
+# import logging
+# logging.getLogger( "qfast" ).setLevel( logging.DEBUG )
 
-def synthesize ( utry ):
-    """
-    Synthesize a unitary matrix and return qasm code using QFAST with
-    qiskit's kak native tool.
-
-    Args:
-        utry (np.ndarray): The unitary matrix to synthesize
-
-    Returns:
-        (str): Qasm code implementing utry
-    """
-
-    # Decompose the big input unitary into smaller unitary gates.
-    decomposer = Decomposer( utry )
-    gate_list = decomposer.decompose()
-
-    # Instantiate the small unitary gates into native code
-    instantiater = Instantiater( "kak" )
-    qasm_list = instantiater.instantiate( gate_list ) 
-
-    # Recombine all small circuits into one large output
-    combiner = Combiner( optimization = True )
-    qasm_out = combiner.combine( qasm_list )
-
-    return qasm_out
-
-import logging
-logging.getLogger( "qfast" ).setLevel( logging.DEBUG )
 # Synthesize the qft4 unitary and print results
-qasm = synthesize( qft4 )
-print( qasm )
+print( synthesize( qft4 ) )

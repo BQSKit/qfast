@@ -17,7 +17,7 @@ class SoftPauliModel ( CircuitModel ):
         self.gates = [ self.head ]
         self.param_ranges = [0, self.head.get_param_count()]
 
-        self.success_threshold = 1e-9
+        self.success_threshold = 1e-3
         self.progress_threshold = 5e-3
 
     def get_initial_input ( self ):

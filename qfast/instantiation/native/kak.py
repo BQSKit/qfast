@@ -39,7 +39,7 @@ class KAKTool ( nativetool.NativeTool ):
             ValueError: If the utry has invalid dimensions.
         """
 
-        if not utils.is_unitary( utry ):
+        if not utils.is_unitary( utry, tol = 1e-14 ):
             raise TypeError( "utry must be a valid unitary." )
 
         if utry.shape[0] > 2 ** self.get_maximum_size():
