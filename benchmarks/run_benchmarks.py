@@ -99,7 +99,7 @@ if not os.path.isdir( exp_folder ):
 data = {}
 
 # Set Random Seed
-np.random.seed(21211411)
+# np.random.seed(21211411)
 
 hierarchy_fn = lambda x : 3 if x >= 7 else 2
 

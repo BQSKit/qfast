@@ -173,12 +173,18 @@ class PredictionModel ( CircuitModel ):
                 for j in range( i + 1 ):
                     print( "Reoptimizing gate at depth:", j )
                     self.suffix = closest_unitary( self.suffix @ utrys[j].conj().T )
-
-                    paulis = pauli_expansion( unitary_log_no_i( self.suffix.conj().T @ self.utry @ self.prefix.conj().T ) )
+                    roll = np.random.randint(1)
+                    if roll % 3 == 0:
+                        paulis = pauli_expansion( unitary_log_no_i( self.suffix.conj().T @ self.utry @ self.prefix.conj().T ) )
+                    elif roll % 3 == 1:
+                        paulis = pauli_expansion( unitary_log_no_i( self.utry @ self.prefix.conj().T ) )
                     l = get_most_entangled( paulis, self.locations )
                     entangled_order = get_entangled_order( paulis, self.locations )
                     #print( entangled_order )
                     assert( l == entangled_order[0][0] )
+
+                    if roll % 3 == 2:
+                        l = np.random.choice( self.locations, 1 )
 
                     if len( self.locs ) > 0 and l == self.locs[-1]:
                         l = entangled_order[1][0]
