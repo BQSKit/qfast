@@ -99,7 +99,7 @@ if not os.path.isdir( exp_folder ):
 data = {}
 
 # Set Random Seed
-# np.random.seed(21211411)
+np.random.seed(21211411)
 
 hierarchy_fn = lambda x : 3 if x >= 7 else 2
 
@@ -128,7 +128,7 @@ for file in os.listdir():
         start = timer()
 
         try:
-            qasm = synthesize( utry, model = "PredictionModel", hierarchy_fn = hierarchy_fn )
+            qasm = synthesize( utry, model = "PermModel", hierarchy_fn = hierarchy_fn )
         except Exception as ex:
             print( ex )
             timeout = True
