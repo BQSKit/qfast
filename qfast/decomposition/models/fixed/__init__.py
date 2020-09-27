@@ -1,0 +1,1 @@
+from .fixedmodel import FixedModel

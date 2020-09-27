@@ -2,10 +2,10 @@
 
 from qfast import Decomposer, Instantiater, Combiner, plugins, utils
 
-def synthesize ( utry, model = "SoftPauliModel", optimizer = "LFBGSOptimizer",
+def synthesize ( utry, model = "PermModel", optimizer = "LFBGSOptimizer",
                  tool = "KAKTool",
                  hierarchy_fn = lambda x : x // 2 if x > 3 else 2,
-                 coupling_graph = None ):
+                 coupling_graph = None, model_options = {} ):
     """
     Synthesize a unitary matrix and return qasm code using QFAST.
 
@@ -23,6 +23,8 @@ def synthesize ( utry, model = "SoftPauliModel", optimizer = "LFBGSOptimizer",
 
         coupling_graph (None or list[tuple[int]]): Determines the
             connection of qubits. If none, will be set to all-to-all.
+
+        model_options (Dict): kwargs for model
 
     Returns:
         (str): Qasm code implementing utry.
@@ -48,7 +50,8 @@ def synthesize ( utry, model = "SoftPauliModel", optimizer = "LFBGSOptimizer",
                              model = model,
                              optimizer = optimizer,
                              coupling_graph = coupling_graph,
-                             hierarchy_fn = hierarchy_fn )
+                             hierarchy_fn = hierarchy_fn,
+                             model_options = model_options )
     gate_list = decomposer.decompose()
 
     # Instantiate the small unitary gates into native code

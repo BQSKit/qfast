@@ -23,7 +23,7 @@ class Decomposer():
     def __init__ ( self, utry, target_gate_size = 2, model = "SoftPauliModel",
                    optimizer = "LFBGSOptimizer",
                    hierarchy_fn = lambda x : x // 2 if x > 3 else 2,
-                   coupling_graph = None ):
+                   coupling_graph = None, model_options = {} ):
         """
         Initializes a decomposer.
 
@@ -73,6 +73,7 @@ class Decomposer():
         if optimizer not in plugins.get_optimizers():
             raise RuntimeError( f"Cannot find optimizer: {optimizer}" )
 
+        self.model_options = model_options
         self.optimizer = plugins.get_optimizer( optimizer )
 
     def decompose ( self ):
@@ -99,7 +100,7 @@ class Decomposer():
                 else:
                     next_gate_size = self.hierarchy_fn( gate.num_qubits )
                     t = self.topology.get_locations( next_gate_size )
-                    m = self.model( self.utry, next_gate_size, t, self.optimizer() )
+                    m = self.model( self.utry, next_gate_size, t, self.optimizer(), **self.model_options )
                     new_gate_list += m.solve()
 
             gate_list = new_gate_list
