@@ -6,6 +6,9 @@ from qfast.gate import Gate
 from .genericgate import GenericGate
 from .fixedgate import FixedGate
 
+import logging
+logger = logging.getLogger( "qfast" )
+
 class PermModel ( CircuitModel ):
 
     def __init__ ( self, utry, gate_size, locations, optimizer ):
@@ -14,7 +17,7 @@ class PermModel ( CircuitModel ):
         self.gates = [ self.head ]
         self.param_ranges = [0, self.head.get_param_count()]
 
-        self.success_threshold = 5e-5
+        self.success_threshold = 1e-3
         self.progress_threshold = 5e-3
 
     def get_initial_input ( self ):
@@ -31,9 +34,9 @@ class PermModel ( CircuitModel ):
 
     def distance ( self, x ):
         M = self.get_matrix( x )
-        num = np.abs( np.trace( self.utry_dag @ M ) ) ** 2
-        dem = M.shape[0] ** 2
-        return np.sqrt( 1 - ( num / dem ) )
+        num = np.abs( np.trace( self.utry_dag @ M ) )
+        dem = M.shape[0]
+        return 1 - ( num / dem )
 
     def success ( self, distance ):
         return distance < self.success_threshold
@@ -100,101 +103,42 @@ class PermModel ( CircuitModel ):
 
         while True:
             
-            # if len( saved_locs ) == 0:
-                # tp = t.copy()
-            # else:
-                # tp = t.copy()
-                # tp.remove( saved_locs[-1] )
-
-            # for loc in failed_locs:
-                # tp.remove( loc[0] )
-
-            # for j in range( i ):
-                # circ.append_gate( FixedGate( n, m, saved_locs[j] ) )
-            # circ.append_gate( GenericGate( n, m, tp ) )
-
             xin = self.get_initial_input()
-            # print ( self.param_ranges )
 
-            # if xout is not None:
-                # print( len( xin ) )
-                # print( len( xout ) )
-                # xin[ -len( xout ) : ] = xout
-            if last_dist <= 1e-3:
-                xout = self.optimizer.minimize_fine( self.objective_fn, xin )
-            else:
-                xout = self.optimizer.minimize_coarse( self.objective_fn, xin )
+            xout = self.optimizer.minimize_coarse( self.objective_fn, xin )
 
             distance = self.distance( xout )
 
             chosen_location = self.head.get_chosen_location( xout )
-            print( distance, chosen_location )
+            logger.info( f"Finished optimizing depth {depth} at {distance} "
+                         + f"distance with location {chosen_location}." )
 
             if self.success( distance ):
-                print( "SUCCESS" )
+                logger.info( "Exploration finished: success" )
                 return self.finalize( chosen_location, xout )
 
 
             if self.progress( distance, last_dist ):
-                print( "PROGRESS" )
+                logger.info( "Progress has been made, depth increasing." )
                 last_dist = distance
                 self.expand( chosen_location )
                 self.head.restrict( chosen_location )
                 depth += 1
 
             elif self.head.cannot_restrict():
-                print( "CANNOT RESTRICT" )
+                logger.info( "Progress has not been made." )
+                logger.info( "Cannot restrict further, depth increasing." )
                 failed_locs.sort( key = lambda x : x[1] )
                 chosen_location, last_dist = failed_locs[0]
+                logger.info( f"Choosing minimum distance: {chosen_location} {last_dist}" )
                 self.expand( chosen_location )
                 depth += 1
                 failed_locs = []
 
             else:
-                print( "RESTRICT" )
+                logger.info( "Progress has not been made, restricting model." )
                 failed_locs.append( ( chosen_location, distance ) )
                 self.head.restrict( chosen_location )
-
-            # print( "-------------------------------------" )
-            # print( "-------------------------------------" )
-            # print( "RESULTS FOR i = ", i )
-            # print( "-------------------------------------" )
-            # print( res.fun )
-            # loss = 1 + (res.fun / (2**n))
-            # print( loss )
-            # print( res.x )
-            # print( res.message )
-            # print( utils.softmax( res.x[ -len( tp ) : ], beta = 10 ) )
-            # if last_dist - distance <= self.progress_threshold:
-                # print( "Didn't improve." )
-                # depth -= 1
-                # failed_locs.append( ( tp[ np.argmax( res.x[ -len( tp ) : ] ) ], loss ) )
-            # else:
-                # saved_locs.append( tp[ np.argmax( res.x[ -len( tp ) : ] ) ] )
-                # failed_locs = []
-                # last_loss = loss
-
-            # if len( failed_locs ) == len( t ) - 1:
-                # min_loss = 1
-                # min_loc = None
-                # for loc, floss in failed_locs:
-                    # if floss < min_loss:
-                        # min_loss = floss
-                        # min_loc = loc
-                # failed_locs = []
-                # saved_locs.append( min_loc )
-                # last_loss = min_loss
-                # i += 1
-                # print( "Ugh, going on anyways." )
-
-            # if loss < 1e-3:
-                # print( "FOUND CIRCUIT!" )
-                # i += 10000
-            # print( saved_locs )
-            # print( failed_locs )
-            # i += 1
-            # print( "-------------------------------------" )
-            # print( "-------------------------------------" )
 
 
     def get_param_count ( self ):

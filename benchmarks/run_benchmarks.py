@@ -121,7 +121,7 @@ for file in os.listdir():
         logger.info( "-" * 40 )
 
         timeout = False
-        timeouts = { 3: 5*60, 4: 10*60, 5: 30*60, 6: 60*60 }
+        timeouts = { 3: 10*60, 4: 20*60, 5: 45*60, 6: 90*60 }
         signal.alarm( timeouts[ num_qubits ] )
 
         # Run Benchmark
