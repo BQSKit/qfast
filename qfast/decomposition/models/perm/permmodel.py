@@ -128,8 +128,11 @@ class PermModel ( CircuitModel ):
             elif self.head.cannot_restrict():
                 logger.info( "Progress has not been made." )
                 logger.info( "Cannot restrict further, depth increasing." )
-                failed_locs.sort( key = lambda x : x[1] )
-                chosen_location, last_dist = failed_locs[0]
+                if len( failed_locs ) > 0:
+                    failed_locs.sort( key = lambda x : x[1] )
+                    chosen_location, last_dist = failed_locs[0]
+                else:
+                    last_dist = distance
                 logger.info( f"Choosing minimum distance: {chosen_location} {last_dist}" )
                 self.expand( chosen_location )
                 depth += 1
