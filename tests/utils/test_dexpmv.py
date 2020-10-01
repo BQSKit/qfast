@@ -57,6 +57,18 @@ class TestDexpmv ( ut.TestCase ):
 
         self.assertTrue( np.allclose( dFs0, dFs1 ) )
 
+    def test_dexpmv_invalid ( self ):
+        self.assertRaises( Exception, dexpmv, 0, 0 )
+        self.assertRaises( Exception, dexpmv, 0, [1, 0] )
+        self.assertRaises( Exception, dexpmv, [1, 0], 0 )
+        self.assertRaises( Exception, dexpmv, [1, 0], [1, 0] )
+
+        I = np.identity( 2 )
+        self.assertRaises( Exception, dexpmv, I, 0 )
+        self.assertRaises( Exception, dexpmv, 0, I )
+        self.assertRaises( Exception, dexpmv, I, [1, 0] )
+        self.assertRaises( Exception, dexpmv, [1, 0], I )
+
 
 if __name__ == '__main__':
     ut.main()
