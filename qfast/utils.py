@@ -2,6 +2,15 @@ import scipy as sp
 import numpy as np
 
 
+def get_num_qubits ( M ):
+    """Returns the size of the square matrix, M, in qubits."""
+
+    if not is_square_matrix( M ):
+        raise TypeError( "Invalid matrix." )
+
+    return int( np.log2( len( M ) ) )
+
+
 def is_valid_coupling_graph ( coupling_graph, num_qubits = None ):
     """
     Checks if the coupling graph is valid.
@@ -140,7 +149,7 @@ def is_square_matrix ( M ):
 def is_unitary ( U, tol = 1e-15 ):
     """Checks if U is a unitary matrix."""
 
-    if not is_matrix( U ):
+    if not is_square_matrix( U ):
         return False
 
     X = U @ U.conj().T
