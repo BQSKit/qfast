@@ -1,5 +1,10 @@
+import logging
+
 import scipy as sp
 import numpy as np
+
+
+logger = logging.getLogger( "qfast" )
 
 
 def get_num_qubits ( M ):
@@ -26,28 +31,34 @@ def is_valid_coupling_graph ( coupling_graph, num_qubits = None ):
     """
 
     if not isinstance( coupling_graph, list ):
+        logger.debug( "Coupling graph is not a list." )
         return False
 
     if len( coupling_graph ) == 0:
         return True
 
     if not all( [ isinstance( pair, tuple ) for pair in coupling_graph ] ):
+        logger.debug( "Coupling graph is not a list of tuples." )
         return False
 
     if not all( [ len( pair ) == 2 for pair in coupling_graph ] ):
+        logger.debug( "Coupling graph is not a list of pairs." )
         return False
 
     if num_qubits is not None:
         if not all( [ qubit < num_qubits
                       for pair in coupling_graph
                       for qubit in pair ] ):
+            logger.debug( "Coupling graph has invalid qubits." )
             return False
 
     if len( coupling_graph ) != len( set( coupling_graph ) ):
+        logger.debug( "Coupling graph has duplicates." )
         return False
 
     if not all( [ len( pair ) == len( set( pair ) )
                   for pair in coupling_graph ] ):
+        logger.debug( "Coupling graph has an invalid pair." )
         return False
 
     return True
@@ -68,16 +79,20 @@ def is_valid_location ( location, num_qubits = None ):
     """
 
     if not isinstance( location, tuple ):
+        logger.debug( "Location is not a tuple." )
         return False
 
     if not all( [ isinstance( qubit, int ) for qubit in location ] ):
+        logger.debug( "Location is not a tuple of ints." )
         return False
 
     if len( location ) != len( set( location ) ):
+        logger.debug( "Location has duplicates." )
         return False
 
     if num_qubits is not None:
         if not all( [ qubit < num_qubits for qubit in location ] ):
+            logger.debug( "Location has an invalid qubit." )
             return False
 
     return True
@@ -101,22 +116,27 @@ def is_valid_locations ( locations, num_qubits = None, gate_size = None ):
     """
 
     if not isinstance( locations, list ):
+        logger.debug( "Locations is not a list." )
         return False
 
     if len( locations ) == 0:
+        logger.debug( "Locations is empty." )
         return True
 
     if not all( [ is_valid_location( location, num_qubits )
                   for location in locations ] ):
+        logger.debug( "Locations is not a list of valid locations." )
         return False
 
     if gate_size is None:
         gate_size = len( locations[0] )
 
     if not all( [ len( location ) == gate_size for location in locations ] ):
+        logger.debug( "A location has an invalid size." )
         return False
 
     if len( locations ) != len( set( locations ) ):
+        logger.debug( "Locations has duplicates." )
         return False
 
     return True
@@ -125,10 +145,12 @@ def is_valid_locations ( locations, num_qubits = None, gate_size = None ):
 def is_matrix ( M ):
     """Checks if M is a matrix."""
 
-    if not isinstance( M, np.ndarray ):
+    if not isinstance( M, np.ndarray ): 
+        logger.debug( "M is not an numpy array." )
         return False
 
     if len( M.shape ) != 2:
+        logger.debug( "M is not an 2-dimensional array." )
         return False
 
     return True
@@ -154,11 +176,18 @@ def is_unitary ( U, tol = 1e-15 ):
 
     X = U @ U.conj().T
     Y = U.conj().T @ U
+    I = np.identity( X.shape[0] )
 
-    if not np.allclose( X, np.identity( X.shape[0] ), rtol = 0, atol = tol ):
+    if not np.allclose( X, I, rtol = 0, atol = tol ):
+        if logger.isEnabledFor( logging.DEBUG ):
+            norm = np.linalg.norm( X - I )
+            logger.debug( "Failed unitary condition, ||UU^d - I|| = %f" % norm )
         return False
     
-    if not np.allclose( Y, np.identity( Y.shape[0] ), rtol = 0, atol = tol ):
+    if not np.allclose( Y, I, rtol = 0, atol = tol ):
+        if logger.isEnabledFor( logging.DEBUG ):
+            norm = np.linalg.norm( Y - I )
+            logger.debug( "Failed unitary condition, ||U^dU - I|| = %f" % norm )
         return False
     
     return True
@@ -171,6 +200,10 @@ def is_hermitian ( H, tol = 1e-15 ):
         return False
 
     if not np.allclose( H, H.conj().T, rtol = 0, atol = tol ):
+        if logger.isEnabledFor( logging.DEBUG ):
+            norm = np.linalg.norm( H - H.conj().T )
+            logger.debug( "Failed hermitian condition, ||H - H^d|| = %f"
+                          % norm )
         return False
     
     return True
@@ -183,6 +216,10 @@ def is_skew_hermitian ( H, tol = 1e-15 ):
         return False
 
     if not np.allclose( -H, H.conj().T, rtol = 0, atol = tol ):
+        if logger.isEnabledFor( logging.DEBUG ):
+            norm = np.linalg.norm( -H - H.conj().T )
+            logger.debug( "Failed skew hermitian condition, ||H - H^d|| = %f"
+                          % norm )
         return False
     
     return True
@@ -288,6 +325,7 @@ def softmax ( x, beta = 20 ):
     shiftx = beta * ( x - np.max( x ) )
     exps = np.exp( shiftx )
     return exps / np.sum(exps)
+
 
 def closest_unitary ( A ):
     """
