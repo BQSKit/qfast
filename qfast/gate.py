@@ -28,23 +28,26 @@ class Gate():
             raise TypeError( "Invalid unitary." )
 
         self.utry = utry
-        self.num_qubits = int( np.log2( len( self.utry ) ) )
+        self.num_qubits = utils.get_num_qubits( self.utry )
 
         if not utils.is_valid_location( location ):
             raise TypeError( "Invalid location." )
+
+        if len( location ) != self.num_qubits:
+            raise ValueError( "Invalid size of location." )
 
         self.location = location
 
     def __str__ ( self ):
         """Gets the gate's string representation."""
 
-        return str( self.loc ) + ":" + str( self.utry )
+        return str( self.location ) + ":" + str( self.utry )
 
     def __repr__ ( self ):
         """Gets a simple gate string representation."""
 
-        return str( self.loc )           \
-               + ": [["                    \
+        return str( self.location )       \
+               + ": [["                   \
                + str( self.utry[0][0] )   \
                + " ... "                  \
                + str( self.utry[-1][-1] ) \
