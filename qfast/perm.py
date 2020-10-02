@@ -3,6 +3,8 @@
 import numpy as np
 import sympy.combinatorics as cb
 
+from qfast import utils
+
 
 def swap_bit ( i, j, b ):
     """
@@ -70,14 +72,14 @@ def calc_permutation_matrix ( num_qubits, location ):
     Args:
         num_qubits (int): Total number of qubits
 
-        location (List[int]): The desired locations to swap
+        location (Tuple[int]): The desired locations to swap
                                 the starting qubits to.
 
     Returns:
         (np.ndarray): The permutation matrix
 
     Examples:
-        calc_permutation_matrix( 2, [0, 1] ) =
+        calc_permutation_matrix( 2, (0, 1) ) =
             [ [ 1, 0, 0, 0 ],
               [ 0, 1, 0, 0 ],
               [ 0, 0, 1, 0 ],
@@ -87,8 +89,8 @@ def calc_permutation_matrix ( num_qubits, location ):
         qubits, specified by the first parameter, and the desired
         permutation is [0, 1] -> [0, 1].
 
-        calc_permutation_matrix( 2, [1] ) =
-        calc_permutation_matrix( 2, [1, 0] ) =
+        calc_permutation_matrix( 2, (1,) ) =
+        calc_permutation_matrix( 2, (1, 0) ) =
             [ [ 1, 0, 0, 0 ],
               [ 0, 0, 1, 0 ],
               [ 0, 1, 0, 0 ],
@@ -100,6 +102,9 @@ def calc_permutation_matrix ( num_qubits, location ):
         or in the second case [0, 1] -> [1, 0]. Both calls produce
         identical permutations.
     """
+
+    if not utils.is_valid_location( location, num_qubits ):
+        raise TypeError( "Invalid location." )
 
     max_qubit = np.max( location )
     num_core_qubits = max_qubit + 1
