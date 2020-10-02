@@ -48,7 +48,7 @@ class Topology:
 
         Each location has gate_size number of qubits. A location is only
         included if each pair of qubits is directly connected or connected
-        through other qubits in location.
+        through other qubits in the location.
 
         Args
             gate_size (int): The size of each location in the final list.
