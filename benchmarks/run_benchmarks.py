@@ -40,7 +40,7 @@ def get_utry ( circ ):
     backend = BasicAer.get_backend( 'unitary_simulator' )
     utry = qiskit.execute( circ, backend ).result().get_unitary()
     num_qubits = int( np.log2( len( utry ) ) )
-    qubit_order = list( reversed( range( num_qubits ) ) )
+    qubit_order = tuple( reversed( range( num_qubits ) ) )
     P = calc_permutation_matrix( num_qubits, qubit_order )
     return P @ utry @ P.T
 
