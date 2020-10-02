@@ -181,13 +181,13 @@ def is_unitary ( U, tol = 1e-15 ):
     if not np.allclose( X, I, rtol = 0, atol = tol ):
         if logger.isEnabledFor( logging.DEBUG ):
             norm = np.linalg.norm( X - I )
-            logger.debug( "Failed unitary condition, ||UU^d - I|| = %f" % norm )
+            logger.debug( "Failed unitary condition, ||UU^d - I|| = %e" % norm )
         return False
     
     if not np.allclose( Y, I, rtol = 0, atol = tol ):
         if logger.isEnabledFor( logging.DEBUG ):
             norm = np.linalg.norm( Y - I )
-            logger.debug( "Failed unitary condition, ||U^dU - I|| = %f" % norm )
+            logger.debug( "Failed unitary condition, ||U^dU - I|| = %e" % norm )
         return False
     
     return True
@@ -202,7 +202,7 @@ def is_hermitian ( H, tol = 1e-15 ):
     if not np.allclose( H, H.conj().T, rtol = 0, atol = tol ):
         if logger.isEnabledFor( logging.DEBUG ):
             norm = np.linalg.norm( H - H.conj().T )
-            logger.debug( "Failed hermitian condition, ||H - H^d|| = %f"
+            logger.debug( "Failed hermitian condition, ||H - H^d|| = %e"
                           % norm )
         return False
     
@@ -218,7 +218,7 @@ def is_skew_hermitian ( H, tol = 1e-15 ):
     if not np.allclose( -H, H.conj().T, rtol = 0, atol = tol ):
         if logger.isEnabledFor( logging.DEBUG ):
             norm = np.linalg.norm( -H - H.conj().T )
-            logger.debug( "Failed skew hermitian condition, ||H - H^d|| = %f"
+            logger.debug( "Failed skew hermitian condition, ||H - H^d|| = %e"
                           % norm )
         return False
     
