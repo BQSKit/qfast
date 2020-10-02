@@ -4,7 +4,7 @@ from qfast import Decomposer, Instantiater, Combiner, plugins, utils
 
 def synthesize ( utry, model = "PermModel", optimizer = "LFBGSOptimizer",
                  tool = "KAKTool",
-                 hierarchy_fn = lambda x : x // 2 if x > 3 else 2,
+                 hierarchy_fn = lambda x : x // 3 if x > 5 else 2,
                  coupling_graph = None, model_options = {} ):
     """
     Synthesize a unitary matrix and return qasm code using QFAST.
