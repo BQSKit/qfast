@@ -5,8 +5,13 @@ The instantiater uses a native tool to convert small generic gates
 to a native gate set.
 """
 
+import logging
+
 from qfast import gate
 from qfast import plugins
+
+
+logger = logging.getLogger( "qfast" )
 
 
 class Instantiater():
@@ -45,6 +50,9 @@ class Instantiater():
 
         if not all( [ isinstance( g, gate.Gate ) for g in gate_list ] ):
             raise TypeError( "Invalid gate list." )
+
+        logger.debug( "Starting Instantiation with %s."
+                      % self.tool.__class__.__name__ )
 
         qasm_list = []
 
