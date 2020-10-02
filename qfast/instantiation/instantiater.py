@@ -5,7 +5,7 @@ The instantiater uses a native tool to convert small generic gates
 to a native gate set.
 """
 
-
+from qfast import gate
 from qfast import plugins
 
 
@@ -40,11 +40,17 @@ class Instantiater():
                 gate locations.
         """
 
+        if not isinstance( gate_list, list ):
+            raise TypeError( "Invalid gate list." )
+
+        if not all( [ isinstance( g, gate.Gate ) for g in gate_list ] ):
+            raise TypeError( "Invalid gate list." )
+
         qasm_list = []
 
-        for gate in gate_list:
-            qasm = self.tool.synthesize( gate.utry )
-            qasm_list.append( ( qasm, gate.location ) )
+        for g in gate_list:
+            qasm = self.tool.synthesize( g.utry )
+            qasm_list.append( ( qasm, g.location ) )
 
         return qasm_list
 

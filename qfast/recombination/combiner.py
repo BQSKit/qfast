@@ -1,8 +1,12 @@
 """
-This module implements the functions for the recombination phase.
+This module implements the Combiner class.
+
+The combiner puts together small circuits into a big one.
 """
 
+
 from qiskit import *
+
 
 class Combiner():
 
