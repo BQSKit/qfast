@@ -171,7 +171,7 @@ class CircuitModel ( metaclass = ModelMeta ):
     def success ( self ):
         """If the model has successfully modeled the target unitary."""
         if self.partial_solution_callback is not None:
-            partial_solution_callback( self.get_gate_list() )
+            self.partial_solution_callback( self.get_gate_list() )
 
         return self.distance() < self.success_threshold
 
