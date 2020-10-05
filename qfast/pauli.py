@@ -95,3 +95,51 @@ def get_pauli_n_qubit_projection ( n, q_set ):
 
     return np.array( pauli_n_qubit )
 
+
+def unitary_log_no_i ( U, tol = 1e-15 ):
+    """
+    Solves for H in U = e^{iH}
+
+    Args:
+        U (np.ndarray): The unitary to decompose
+
+    Returns:
+        H (np.ndarray): e^{iH} = U
+    """
+
+    if not utils.is_unitary( U, tol ):
+        raise TypeError( "Input is not unitary." )
+
+    T, Z = la.schur( U )
+    T = np.diag( T )
+    D = T / np.abs( T )
+    D = np.diag( np.log( D ) )
+    H0 = -1j * (Z @ D @ Z.conj().T)
+    return 0.5 * H0 + 0.5 * H0.conj().T
+
+
+def pauli_expansion ( H, tol = 1e-15 ):
+    """
+    Computes a Pauli expansion of the hermitian matrix H.
+
+    Args:
+        H (np.ndarray): The hermitian matrix
+
+    Returns:
+        X (list of floats): The coefficients of a Pauli expansion for H,
+                            i.e., X dot Sigma = H where Sigma is
+                            Pauli matrices of same size of H
+    """
+
+    if not utils.is_hermitian( H, tol ):
+        raise ValueError( "H must be hermitian." )
+
+    # Change basis of H to Pauli Basis (solve for coefficients -> X)
+    n = int( np.log2( len( H ) ) )
+    paulis = get_norder_paulis( n )
+    flatten_paulis = [ np.reshape( pauli, 4 ** n ) for pauli in paulis ]
+    flatten_H = np.reshape( H, 4 ** n )
+    A = np.stack( flatten_paulis, axis = -1 )
+    X = np.real( np.matmul( np.linalg.inv( A ), flatten_H ) )
+    return X
+

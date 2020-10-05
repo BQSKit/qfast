@@ -20,10 +20,11 @@ logger = logging.getLogger( "qfast" )
 
 class Decomposer():
 
-    def __init__ ( self, utry, target_gate_size = 2, model = "SoftPauliModel",
+    def __init__ ( self, utry, target_gate_size = 2, model = "PermModel",
                    optimizer = "LFBGSOptimizer",
-                   hierarchy_fn = lambda x : x // 2 if x > 3 else 2,
-                   coupling_graph = None, model_options = {} ):
+                   hierarchy_fn = lambda x : x // 3 if x > 5 else 2,
+                   coupling_graph = None, intermediate_solution_callback = None,
+                   model_options = {} ):
         """
         Initializes a decomposer.
 
@@ -43,26 +44,39 @@ class Decomposer():
             coupling_graph (None or list[tuple[int]]): Determines the
                 connection of qubits. If none, will be set to all-to-all.
 
+            intermediate_solution_callback (None or callable): Callback
+                function for intermediate solutions. If not None, then
+                a function that takes in a list[Gates] and returns nothing.
+
         Raises:
             ValueError: If the target_gate_size is nonpositive or too large.
 
             RuntimeError: If the model or optimizer cannot be found.
         """
 
-        if not utils.is_unitary( utry, tol = 1e-15 ):
-            logger.warning( "Unitary inputted is not a unitary upto double precision." )
+        if not utils.is_unitary( utry, tol = 1e-14 ):
+            logger.warning( "Unitary is not doubly-precise." )
             logger.warning( "Proceeding with closest unitary to input." )
             self.utry = utils.closest_unitary( utry )
         else:
             self.utry = utry
 
-        self.num_qubits = int( np.log2( len( utry ) ) )
+        self.num_qubits = utils.get_num_qubits( utry )
 
         if target_gate_size <= 0 or target_gate_size > self.num_qubits:
             raise ValueError( "Invalid target gate size." )
 
         self.target_gate_size = target_gate_size
+
+        if not callable( hierarchy_fn ):
+            raise TypeError( "Invalid hierarchy function." )
+
+        if intermediate_solution_callback is not None:
+            if not callable( intermediate_solution_callback ):
+                raise TypeError( "Invalid intermediate solution callback." )
+
         self.hierarchy_fn = hierarchy_fn
+        self.intermediate_solution_callback = intermediate_solution_callback
         self.topology = Topology( self.num_qubits, coupling_graph )
 
         if model not in plugins.get_models():
@@ -75,6 +89,9 @@ class Decomposer():
 
         self.model_options = model_options
         self.optimizer = plugins.get_optimizer( optimizer )
+
+        logger.debug( "Created decomposer with %s and %s."
+                      % ( model, optimizer ) )
 
     def decompose ( self ):
         """
@@ -104,6 +121,9 @@ class Decomposer():
                     new_gate_list += m.solve()
 
             gate_list = new_gate_list
+
+            if self.intermediate_solution_callback is not None:
+                self.intermediate_solution_callback( gate_list )
 
         return gate_list
 

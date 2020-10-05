@@ -5,70 +5,9 @@ from qfast.gate import Gate
 from qfast.pauli import get_norder_paulis, get_pauli_n_qubit_projection
 from qfast.utils import dot_product, closest_unitary, is_unitary
 from qfast.decomposition.circuitmodel import CircuitModel
-from .fixedgate import FixedGate
+from qfast.decomposition.models.perm.fixedgate import FixedGate
 import scipy.optimize as opt
 from functools import reduce
-
-def unitary_log_no_i ( U ):
-    """
-    Solves for H in U = e^{iH}
-
-    Args:
-        U (np.ndarray): The unitary to decompose
-
-    Returns:
-        H (np.ndarray): e^{iH} = U
-    """
-
-    if not is_unitary( U ):
-        U = closest_unitary( U )
-
-    T, Z = la.schur( U )
-    T = np.diag( T )
-    D = T / np.abs( T )
-    D = np.diag( np.log( D ) )
-    H0 = -1j * (Z @ D @ Z.conj().T)
-    return 0.5 * H0 + 0.5 * H0.conj().T
-
-
-def pauli_expansion ( H ):
-    """
-    Computes a Pauli expansion of the hermitian matrix H.
-
-    Args:
-        H (np.ndarray): The hermitian matrix
-
-    Returns:
-        X (list of floats): The coefficients of a Pauli expansion for H,
-                            i.e., X dot Sigma = H where Sigma is
-                            Pauli matrices of same size of H
-    """
-
-    if not np.allclose( H, H.conj().T, rtol = 0, atol = 1e-15 ):
-        raise ValueError( "H must be hermitian." )
-
-    # Change basis of H to Pauli Basis (solve for coefficients -> X)
-    n = int( np.log2( len( H ) ) )
-    paulis = get_norder_paulis( n )
-    flatten_paulis = [ np.reshape( pauli, 4 ** n ) for pauli in paulis ]
-    flatten_H      = np.reshape( H, 4 ** n )
-    A = np.stack( flatten_paulis, axis = -1 )
-    X = np.real( np.matmul( np.linalg.inv( A ), flatten_H ) )
-    return X
-"""
-n = 3
-#utry = np.loadtxt( "qft3.unitary", dtype = np.complex128 )
-pauli_in = np.random.random( 4 ** n )
-utry = la.expm( 1j * dot_product( pauli_in, get_norder_paulis( n ) ) )
-pauli_out = pauli_expansion( unitary_log_no_i_eig( utry ) )
-#print( np.allclose( pauli_in, pauli_out ) )
-#print( paulis )
-#print( np.sqrt( np.sum( np.square( paulis ) ) ) )
-mag_in = np.sqrt( np.sum( np.square( pauli_in ) ) )
-mag_out = np.sqrt( np.sum( np.square( pauli_out ) ) )
-#print( mag_in, mag_out )
-#print( np.allclose( pauli_in / mag_in, pauli_out / mag_out, rtol = 0, atol = 1e-5 ) )
-"""
 
 def get_pauli_str ( idx, num_qubits ):
     keys = [ "I", "X", "Y", "Z" ]
@@ -78,12 +17,12 @@ def get_pauli_str ( idx, num_qubits ):
         idx >>= 2
     return string
 
+
 def pretty_print_paulis ( paulis ):
     num_qubits = int( np.log2( len( paulis ) ) / 2 )
     for i, p in enumerate( paulis ):
         print( get_pauli_str( i, num_qubits ), p )
 
-# pretty_print_paulis( pauli_out )
 
 def count_entanglement ( paulis, q_list ):
     num_qubits = int( np.log2( len( paulis ) ) / 2 )
@@ -109,6 +48,7 @@ def get_pauli_projection ( paulis, q_list ):
         pauli_project.append( paulis[ idx ] )
     return pauli_project
 
+
 def get_most_entangled ( paulis, t ):
     max_val = -1000
     max_l = None
@@ -120,6 +60,7 @@ def get_most_entangled ( paulis, t ):
             max_l = l
 
     return max_l
+
 
 def get_entangled_order ( paulis, t ):
     entangle_count = [ (l, count_entanglement( paulis, l )) for l in t ]
