@@ -8,6 +8,7 @@ import logging
 import pickle
 import signal
 import subprocess
+import traceback
 
 from datetime import date
 from io import StringIO
@@ -66,6 +67,25 @@ def get_error ( utry_in, qasm ):
     return hilbert_schmidt_distance( utry_in, utry_out )
 
 
+class SolutionTree():
+    """Class that tracks intermediate and partial solutions."""
+
+    def __init__ ( self, utry ):
+        self.utry = utry
+        self.intermediates = []
+        self.partials = [ [] ]
+
+    def add_intermediate ( self, intermediate ):
+        self.intermediates.append( intermediate )
+        self.partials.append( [] )
+
+    def add_partial ( self, partial ):
+        self.partials[ len( self.intermediates ) ].append( partial )
+
+
+class TrialTerminatedException ( Exception ):
+    pass
+
 def termTrial ( signal_number, frame ):
     """Terminate a Trial"""
 
@@ -78,89 +98,100 @@ def termTrial ( signal_number, frame ):
         msg = "Timed-out"
 
     logger.error( msg )
-    raise Exception( msg )
+    raise TrialTerminatedException()
 
 
-# Register Signal Handlers
-signal.signal( signal.SIGALRM, termTrial )
-signal.signal( signal.SIGINT, termTrial )
+if __name__ == "__main__":
+    # Register Signal Handlers
+    signal.signal( signal.SIGALRM, termTrial )
+    signal.signal( signal.SIGINT, termTrial )
 
+    # Initialize Data Folders
+    if not os.path.isdir( ".checkpoints" ):
+        os.makedirs( ".checkpoints" )
 
-# Initialize Data Folders
-if not os.path.isdir( ".checkpoints" ):
-    os.makedirs( ".checkpoints" )
+    start_date = str( date.today() )
+    exp_folder = ".checkpoints/" + start_date + "/"
 
-start_date = str( date.today() )
-exp_folder = ".checkpoints/" + start_date + "/"
+    if not os.path.isdir( exp_folder ):
+        os.makedirs( exp_folder )
 
-if not os.path.isdir( exp_folder ):
-    os.makedirs( exp_folder )
+    data = {}
 
-data = {}
+    hierarchy_fn = lambda x : 2
 
-# Set Random Seed
-np.random.seed(21211411)
+    for file in os.listdir():
+        if os.path.isfile( file ) and file[ -8 : ] == ".unitary":
+            name = file[ : -8 ]
+            utry = np.loadtxt( file, dtype = np.complex128 )
+            num_qubits = int( np.log2( len( utry ) ) )
+            stream = StringIO()
+            handler = logging.StreamHandler( stream )
+            handler.setLevel( logging.DEBUG )
+            logger.setLevel( logging.DEBUG )
+            logger.addHandler( handler )
 
-hierarchy_fn = lambda x : 3 if x >= 7 else 2
+            logger.info( "-" * 40 )
+            logger.info( get_exp_header() )
+            logger.info( start_date )
+            logger.info( name )
+            logger.info( "-" * 40 )
 
-for file in os.listdir():
-    if os.path.isfile( file ) and file[ -8 : ] == ".unitary":
-        name = file[ : -8 ]
-        utry = np.loadtxt( file, dtype = np.complex128 )
-        num_qubits = int( np.log2( len( utry ) ) )
-        stream = StringIO()
-        handler = logging.StreamHandler( stream )
-        handler.setLevel( logging.DEBUG )
-        logger.setLevel( logging.DEBUG )
-        logger.addHandler( handler )
+            soltree = SolutionTree( utry )
 
-        logger.info( "-" * 40 )
-        logger.info( get_exp_header() )
-        logger.info( start_date )
-        logger.info( name )
-        logger.info( "-" * 40 )
+            timeout = False
+            timeouts = { 3: 10*60, 4: 20*60, 5: 45*60, 6: 90*60 }
+            signal.alarm( timeouts[ num_qubits ] )
 
-        timeout = False
-        timeouts = { 3: 10*60, 4: 20*60, 5: 45*60, 6: 90*60 }
-        signal.alarm( timeouts[ num_qubits ] )
+            # Set Random Seed
+            np.random.seed(21211411)
 
-        # Run Benchmark
-        start = timer()
+            # Run Benchmark
+            start = timer()
 
-        try:
-            qasm = synthesize( utry, model = "PermModel", hierarchy_fn = hierarchy_fn )
-        except Exception as ex:
-            print( ex )
-            timeout = True
-            pass
+            try:
+                qasm = synthesize( utry, model = "PermModel",
+                                   hierarchy_fn = hierarchy_fn,
+                                   intermediate_solution_callback = soltree.add_intermediate,
+                                   model_options = {
+                                       "partial_solution_callback": soltree.add_partial
+                                   } )
 
-        end = timer()
+            except TrialTerminatedException:
+                timeout = True
+            except:
+                logger.error( traceback.format_exc() )
+                traceback.print_exc()
 
-        handler.flush()
-        logger.removeHandler( handler )
-        handler.close()
-        log_out = stream.getvalue()
+            end = timer()
 
-        if timeout == False:
-            data[ name ] = ( num_qubits, qasm.count( "cx" ), end - start,
-                             get_error( utry, qasm ), qasm, log_out )
-        else: 
-            data[ name ] = ( num_qubits,  log_out )
-            
+            handler.flush()
+            logger.removeHandler( handler )
+            handler.close()
+            log_out = stream.getvalue()
 
-        # Save data
-        filenum = 0
-        filename = exp_folder + name + str( filenum ) + ".dat"
-        while os.path.isfile( filename ):
-            filenum += 1
+            if timeout == False:
+                data[ name ] = ( num_qubits, qasm.count( "cx" ), end - start,
+                                 get_error( utry, qasm ), qasm, log_out, soltree )
+            else: 
+                data[ name ] = ( num_qubits,  log_out, soltree )
+                
+
+            # Save data
+            filenum = 0
             filename = exp_folder + name + str( filenum ) + ".dat"
-        file = open( filename, 'wb' )
-        pickle.dump( data[ name ], file )
+            while os.path.isfile( filename ):
+                filenum += 1
+                filename = exp_folder + name + str( filenum ) + ".dat"
+            file = open( filename, 'wb' )
+            pickle.dump( data[ name ], file )
 
-for test in data:
+    for test in data:
+        if len( data[test] )  < 6:
+            continue
+        print( "-" * 40 )
+        print( test )
+        print( "CX count:", data[test][1] )
+        print( "Time (s):", data[test][2] )
+        print( "Error:", data[test][3] )
     print( "-" * 40 )
-    print( test )
-    print( "CX count:", data[test][1] )
-    print( "Time (s):", data[test][2] )
-    print( "Error:", data[test][3] )
-print( "-" * 40 )
