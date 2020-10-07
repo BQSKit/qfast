@@ -2,7 +2,7 @@
 This module defines the CircuitModel abstract base class.
 
 A CircuitModel models a large unitary as a circuit of gates.
-This enables the decomposition of unitaries. 
+This enables the decomposition of unitaries.
 
 All model plugins must extend this class and implement the
 functionality outlined here.
@@ -31,7 +31,7 @@ class ModelMeta ( abc.ABCMeta ):
 
 class CircuitModel ( metaclass = ModelMeta ):
     """The CircuitModel abstract base class."""
-    
+
     def __init__ ( self, utry, gate_size, locations, optimizer,
                    success_threshold = 1e-3, partial_solution_callback = None ):
         """
@@ -89,7 +89,6 @@ class CircuitModel ( metaclass = ModelMeta ):
         Returns:
             (List[Gate]): The list of gates that implement the unitary.
         """
-        pass
 
     def get_initial_input ( self ):
         """Get initial input of model."""
@@ -103,7 +102,7 @@ class CircuitModel ( metaclass = ModelMeta ):
         """Resets input and recalculates parameter ranges."""
         self.param_ranges = [ 0 ]
 
-        for gate in self.gates: 
+        for gate in self.gates:
             self.param_ranges.append( self.param_ranges[-1]
                                       + gate.get_param_count() )
 
@@ -148,10 +147,13 @@ class CircuitModel ( metaclass = ModelMeta ):
 
     def pop_gate ( self ):
         """Remove and return the last gate in model."""
-        if len( self.gates ) > 0:
-            self.x = self.x[ : self.param_ranges[-2] ]
-            self.param_ranges.pop()
-            return self.gates.pop()
+
+        if len( self.gates ) <= 0:
+            raise IndexError( "No gates in model to pop." )
+
+        self.x = self.x[ : self.param_ranges[-2] ]
+        self.param_ranges.pop()
+        return self.gates.pop()
 
     def get_param_count ( self ):
         """Total number of parameters in model."""
@@ -201,7 +203,7 @@ class CircuitModel ( metaclass = ModelMeta ):
         """Returns the circuit model's matrix."""
         if len( self.gates ) == 0:
             return np.identity( self.utry_dag.shape[0] )
-        
+
         if len( self.gates ) == 1:
             return self.gates[0].get_matrix(x)
 
@@ -216,7 +218,7 @@ class CircuitModel ( metaclass = ModelMeta ):
         """Returns the circuit model's matrix and derivatives."""
         if len( self.gates ) == 0:
             return np.identity( self.utry_dag.shape[0] ), np.array([])
-        
+
         if len( self.gates ) == 1:
             return self.gates[0].get_matrix_and_derivatives(x)
 

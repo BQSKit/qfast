@@ -70,7 +70,7 @@ class PermModel ( CircuitModel ):
         new_gate = FixedGate( self.num_qubits, self.gate_size, location )
         self.insert_gate( -1, new_gate )
         self.head.lift_restrictions()
-        self.head.restrict( self.gates[-2].get_location( self.x ) )
+        self.head.restrict( location )
 
     def finalize ( self ):
         """Finalize the circuit by replacing the head if necessary."""
@@ -112,6 +112,8 @@ class PermModel ( CircuitModel ):
                 logger.info( "Progress has not been made." )
                 logger.info( "Cannot restrict further, depth increasing." )
 
+                failed_locs.append( ( location, self.distance() ) )
+
                 if len( failed_locs ) > 0:
                     failed_locs.sort( key = lambda x : x[1] )
                     location, self.last_dist = failed_locs[0]
@@ -125,4 +127,6 @@ class PermModel ( CircuitModel ):
                 logger.info( "Progress has not been made, restricting model." )
                 failed_locs.append( ( location, self.distance() ) )
                 self.head.restrict( location )
+
+        return self.finalize()
 

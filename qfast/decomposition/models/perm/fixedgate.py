@@ -5,6 +5,7 @@ A FixedGate is a gate with fixed location but variable function.
 This is done using permutation matrices.
 """
 
+
 import numpy as np
 import scipy as sp
 
@@ -12,6 +13,7 @@ from qfast import pauli
 from qfast import perm
 from qfast import utils
 from qfast.decomposition.gatemodel import GateModel
+
 
 class FixedGate ( GateModel ):
 

@@ -5,6 +5,7 @@ A GenericGate is a gate with variable location and function.
 This is done using permutation matrices.
 """
 
+
 from copy import deepcopy
 
 import numpy as np
@@ -14,6 +15,7 @@ from qfast import pauli
 from qfast import perm
 from qfast import utils
 from qfast.decomposition.gatemodel import GateModel
+
 
 class GenericGate ( GateModel ):
 
@@ -89,7 +91,8 @@ class GenericGate ( GateModel ):
     def get_initial_input ( self ):
         """Produces a random vector of inputs."""
         ain = np.random.random( self.get_function_count() )
-        lin = [ 0 ] * len( self.working_locations )
+        # ain = [ np.pi ] * self.get_function_count()
+        lin = [ 0 ] * self.get_location_count()
         return np.concatenate( [ ain, lin ] )
 
     def partition_input ( self, x ):

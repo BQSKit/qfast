@@ -39,6 +39,7 @@ class GateModel( abc.ABC ):
     def get_initial_input ( self ):
         """Produces a random vector of inputs."""
         return np.random.random( self.get_param_count() )
+        # return [ np.pi ] * self.get_param_count()
 
     @abc.abstractmethod
     def get_location ( self, x ):

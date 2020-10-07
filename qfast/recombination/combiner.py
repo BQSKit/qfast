@@ -4,9 +4,12 @@ This module implements the Combiner class.
 The combiner puts together small circuits into a big one.
 """
 
+import logging
 
 from qiskit import *
 
+
+logger = logging.getLogger( "qfast" )
 
 class Combiner():
 
@@ -19,6 +22,8 @@ class Combiner():
         """
 
         self.optimization = optimization
+
+        logger.debug( "Starting Recombination." )
 
     def combine ( self, qasm_list ):
         """
