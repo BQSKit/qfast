@@ -2,4 +2,5 @@
 *.unitary
 *.egg-info
 *.checkpoints
+!examples/*.unitary
 !benchmarks/*/*.unitary
