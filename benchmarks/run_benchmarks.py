@@ -1,26 +1,27 @@
 """
-This scripts tests qfast with all .unitary files in
-the current directory.
+QFAST Benchmarking Script
+
+This script runs qfast on all ".unitary" files in the current directory.
 """
 
 import os
-import logging
 import pickle
 import signal
-import subprocess
+import logging
 import traceback
-
-from datetime import date
+import subprocess
 from io import StringIO
 from timeit import default_timer as timer
+from datetime import date
 
 import numpy as np
+import qiskit
 
 import qfast
 from qfast import synthesize
-from qfast.perm import calc_permutation_matrix
+from qfast import perm
+from qfast import utils
 
-from qiskit import *
 
 logger = logging.getLogger( "qfast" )
 
@@ -38,11 +39,11 @@ def get_exp_header():
 def get_utry ( circ ):
     """Converts a qiskit circuit into a numpy unitary."""
 
-    backend = BasicAer.get_backend( 'unitary_simulator' )
+    backend = qiskit.BasicAer.get_backend( 'unitary_simulator' )
     utry = qiskit.execute( circ, backend ).result().get_unitary()
     num_qubits = int( np.log2( len( utry ) ) )
     qubit_order = tuple( reversed( range( num_qubits ) ) )
-    P = calc_permutation_matrix( num_qubits, qubit_order )
+    P = perm.calc_permutation_matrix( num_qubits, qubit_order )
     return P @ utry @ P.T
 
 
@@ -61,7 +62,7 @@ def hilbert_schmidt_distance ( X, Y ):
 def get_error ( utry_in, qasm ):
     """Calculates the experiment error."""
 
-    circ = QuantumCircuit.from_qasm_str( qasm )
+    circ = qiskit.QuantumCircuit.from_qasm_str( qasm )
     circ.remove_final_measurements()
     utry_out = get_utry( circ )
     return hilbert_schmidt_distance( utry_in, utry_out )
@@ -76,17 +77,19 @@ class SolutionTree():
         self.partials = [ [] ]
 
     def add_intermediate ( self, intermediate ):
+        """Stores an intermediate solution in the tree."""
         self.intermediates.append( intermediate )
         self.partials.append( [] )
 
     def add_partial ( self, partial ):
+        """Stores a partial solution in the tree."""
         self.partials[ len( self.intermediates ) ].append( partial )
 
 
 class TrialTerminatedException ( Exception ):
-    pass
+    """Custom timeout or interrupt Exception."""
 
-def termTrial ( signal_number, frame ):
+def term_trial ( signal_number, frame ):
     """Terminate a Trial"""
 
     msg = "Error"
@@ -101,10 +104,10 @@ def termTrial ( signal_number, frame ):
     raise TrialTerminatedException()
 
 
-if __name__ == "__main__":
+def run_tests():
     # Register Signal Handlers
-    signal.signal( signal.SIGALRM, termTrial )
-    signal.signal( signal.SIGINT, termTrial )
+    signal.signal( signal.SIGALRM, term_trial )
+    signal.signal( signal.SIGINT, term_trial )
 
     # Initialize Data Folders
     if not os.path.isdir( ".checkpoints" ):
@@ -118,13 +121,15 @@ if __name__ == "__main__":
 
     data = {}
 
-    hierarchy_fn = lambda x : 2
+    hierarchy_fn = lambda x : 3 if x > 6 else 2
 
     for file in os.listdir():
         if os.path.isfile( file ) and file[ -8 : ] == ".unitary":
             name = file[ : -8 ]
             utry = np.loadtxt( file, dtype = np.complex128 )
-            num_qubits = int( np.log2( len( utry ) ) )
+            num_qubits = utils.get_num_qubits( utry )
+
+            # Record QFAST's logger
             stream = StringIO()
             handler = logging.StreamHandler( stream )
             handler.setLevel( logging.DEBUG )
@@ -140,7 +145,7 @@ if __name__ == "__main__":
             soltree = SolutionTree( utry )
 
             timeout = False
-            timeouts = { 3: 10*60, 4: 20*60, 5: 45*60, 6: 90*60 }
+            timeouts = { 3: 10*60, 4: 20*60, 5: 45*60, 6: 90*60, 7: 360*60 }
             signal.alarm( timeouts[ num_qubits ] )
 
             # Set Random Seed
@@ -150,16 +155,19 @@ if __name__ == "__main__":
             start = timer()
 
             try:
-                qasm = synthesize( utry, model = "PermModel",
+                qasm = synthesize( utry, model = "SoftPauliModel",
                                    hierarchy_fn = hierarchy_fn,
                                    intermediate_solution_callback = soltree.add_intermediate,
                                    model_options = {
-                                       "partial_solution_callback": soltree.add_partial
+                                       "partial_solution_callback": soltree.add_partial,
+                                       "success_threshold": 1e-4
                                    } )
 
             except TrialTerminatedException:
                 timeout = True
             except:
+                logger.error( "Benchmark %s encountered error during execution."
+                              % name )
                 logger.error( traceback.format_exc() )
                 traceback.print_exc()
 
@@ -170,12 +178,12 @@ if __name__ == "__main__":
             handler.close()
             log_out = stream.getvalue()
 
-            if timeout == False:
-                data[ name ] = ( num_qubits, qasm.count( "cx" ), end - start,
-                                 get_error( utry, qasm ), qasm, log_out, soltree )
-            else: 
+            if not timeout:
+                data[ name ] = ( num_qubits, qasm.count( "cx" ),
+                                 end - start, get_error( utry, qasm ),
+                                 qasm, log_out, soltree )
+            else:
                 data[ name ] = ( num_qubits,  log_out, soltree )
-                
 
             # Save data
             filenum = 0
@@ -186,8 +194,9 @@ if __name__ == "__main__":
             file = open( filename, 'wb' )
             pickle.dump( data[ name ], file )
 
+    # Print Summary
     for test in data:
-        if len( data[test] )  < 6:
+        if len( data[test] ) < 6:
             continue
         print( "-" * 40 )
         print( test )
@@ -195,3 +204,8 @@ if __name__ == "__main__":
         print( "Time (s):", data[test][2] )
         print( "Error:", data[test][3] )
     print( "-" * 40 )
+
+
+if __name__ == "__main__":
+    run_tests()
+
