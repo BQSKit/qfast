@@ -15,12 +15,12 @@ pip install qfast
 QFAST can be used to convert a quantum operation specified by a unitary matrix into a circuit given by [openqasm](https://github.com/Qiskit/openqasm) code. There is a command-line interface provided with qfast that can be accessed by `python -m qfast`. This can be used to synthesize a matrix.
 
 ```
-python -m qfast --unitary-file=input.unitary --qasm-file=output.qasm --native-tool=kak
+python -m qfast input.unitary output.qasm
 ```
 
 Here the `input.unitary` file is a NumPy matrix saved with [np.savetxt](https://docs.scipy.org/doc/numpy/reference/generated/numpy.savetxt.html), the qasm output will be saved in the `output.qasm` file and the KAK native tool will be used. The command-line help option `python -m qfast -h` can be used for further information.
 
-QFAST can also be used as a library, [an example](https://github.com/edyounis/qfast/blob/master/examples/synthesize_qft4.py) is included.
+QFAST can also be used as a library, [an example](https://github.com/BQSKit/qfast/blob/master/examples/synthesize_qft4.py) is included.
 
 ### Native Tools
 
@@ -28,8 +28,8 @@ Native tools are necessary for QFAST to perform instantiation. During decomposit
 
 Included with this python package is the KAK native tool. Here are some others:
 
-- [qfast-uq](https://github.com/edyounis/qfast-uq): A UniversalQCompiler native tool
-- [qfast-sc](https://github.com/edyounis/qfast-sc): A Search Compiler native tool
+- [qfast-uq](https://github.com/BQSKit/qfast-uq): A UniversalQCompiler native tool
+- [qfast-sc](https://github.com/BQSKit/qfast-sc): A Search Compiler native tool
 
 ## References
 

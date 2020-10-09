@@ -155,12 +155,12 @@ def run_tests():
             start = timer()
 
             try:
-                qasm = synthesize( utry, model = "SoftPauliModel",
+                qasm = synthesize( utry, model = "PermModel",
                                    hierarchy_fn = hierarchy_fn,
                                    intermediate_solution_callback = soltree.add_intermediate,
                                    model_options = {
                                        "partial_solution_callback": soltree.add_partial,
-                                       "success_threshold": 1e-4
+                                       "success_threshold": 1e-3
                                    } )
 
             except TrialTerminatedException:

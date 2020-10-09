@@ -63,7 +63,7 @@ def synthesize ( utry, model = "PermModel", optimizer = "LFBGSOptimizer",
 
     # Instantiate the small unitary gates into native code
     instantiater = Instantiater( tool )
-    qasm_list = instantiater.instantiate( gate_list ) 
+    qasm_list = instantiater.instantiate( gate_list )
 
     # Recombine all small circuits into one large output
     combiner = Combiner( optimization = True )

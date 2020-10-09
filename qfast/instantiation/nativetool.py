@@ -36,7 +36,7 @@ class NativeTool ( metaclass = NativeToolMeta ):
         pass
 
     @abc.abstractmethod
-    def synthesize ( utry ):
+    def synthesize ( self, utry ):
         """
         Synthesize the unitary input into native gates.
 
