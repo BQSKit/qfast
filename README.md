@@ -29,7 +29,7 @@ Native tools are necessary for QFAST to perform instantiation. During decomposit
 Included with this python package is the KAK native tool. Here are some others:
 
 - [qfast-uq](https://github.com/BQSKit/qfast-uq): A UniversalQCompiler native tool
-- [qfast-sc](https://github.com/BQSKit/qfast-qs): A QSearch native tool
+- [qfast-qs](https://github.com/BQSKit/qfast-qs): A QSearch native tool
 
 ## References
 
