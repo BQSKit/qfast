@@ -21,7 +21,7 @@ logger = logging.getLogger( "qfast" )
 class Decomposer():
 
     def __init__ ( self, utry, target_gate_size = 2, model = "PermModel",
-                   optimizer = "LFBGSOptimizer",
+                   optimizer = "LBFGSOptimizer",
                    hierarchy_fn = lambda x : x // 3 if x > 5 else 2,
                    coupling_graph = None, intermediate_solution_callback = None,
                    model_options = {} ):

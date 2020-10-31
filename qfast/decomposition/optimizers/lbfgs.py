@@ -1,10 +1,10 @@
-"""QFAST Optimizer wrapper for scipy's L-FBGS-B optimizer."""
+"""QFAST Optimizer wrapper for scipy's L-BFGS-B optimizer."""
 
 import scipy.optimize as opt
 
 from qfast.decomposition.optimizer import Optimizer
 
-class LFBGSOptimizer( Optimizer ):
+class LBFGSOptimizer( Optimizer ):
 
     def minimize_coarse ( self, objective_fn, xin ):
         res = opt.minimize( objective_fn, xin, jac = True, method = 'L-BFGS-B' )
