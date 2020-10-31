@@ -7,6 +7,7 @@ import qfast
 from qfast.decomposition import models
 from qfast.decomposition import optimizers
 from qfast.instantiation import native
+from qfast.recombination import combiners
 
 
 _discovered_models = {
@@ -29,6 +30,14 @@ _discovered_native_tools = {
     in pkgutil.iter_modules( native.__path__,
                              native.__name__ + "." )
 }
+
+_discovered_combiners = {
+    name: importlib.import_module( name )
+    for finder, name, ispkg
+    in pkgutil.iter_modules( combiners.__path__,
+                             combiners.__name__ + "." )
+}
+
 
 
 def get_models():
@@ -68,6 +77,19 @@ def get_native_tools():
     nativetools = list( qfast.nativetoolsubclasses.keys() )
     nativetools.remove( 'NativeTool' )
     return nativetools
+
+
+def get_combiners():
+    """
+    List the discovered combiners.
+
+    Returns:
+        (List[str]): List of discovered combiners
+    """
+
+    combiners = list( qfast.combinersubclasses.keys() )
+    combiners.remove( 'Combiner' )
+    return combiners
 
 
 def get_model ( name ):
@@ -110,3 +132,18 @@ def get_native_tool ( name ):
     """
 
     return qfast.nativetoolsubclasses[ name ]
+
+
+def get_combiner ( name ):
+    """
+    Retrieves a combiner.
+
+    Args:
+        name (str): The retrieved combiner's name.
+
+    Returns
+        (Combiner): The retrieved combiner.
+    """
+
+    return qfast.combinersubclasses[ name ]
+

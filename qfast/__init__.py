@@ -16,6 +16,7 @@ _logger.addHandler( _handler )
 modelsubclasses = {}
 optimizersubclasses = {}
 nativetoolsubclasses = {}
+combinersubclasses = {}
 
 # Main API
 from .decomposition.decomposer import Decomposer
