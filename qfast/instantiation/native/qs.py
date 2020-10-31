@@ -1,16 +1,18 @@
 """
-This module implements qiskit's kak as a native tool plugin to QFAST.
+This module implements QSearch's Leap Compiler
+as a native tool plugin to QFAST.
 """
 
-import qiskit
-import numpy as np
+import qsearch
+from qsearch import unitaries, advanced_unitaries, leap_compiler
+from qsearch import multistart_solvers, parallelizers, reoptimizing_compiler
 
 from qfast import utils
 from qfast.instantiation import nativetool
 
 
-class KAKTool ( nativetool.NativeTool ):
-    """Synthesize tool built on QISKit's KAK implementation."""
+class QSearchTool ( nativetool.NativeTool ):
+    """Synthesize tool built on QSearch's Leap Compiler."""
 
     def get_maximum_size ( self ):
         """
@@ -21,11 +23,11 @@ class KAKTool ( nativetool.NativeTool ):
             (int): The qubit count this tool can handle.
         """
 
-        return 2
+        return 4
 
     def synthesize ( self, utry ):
         """
-        Synthesis function with QISKit's KAK implementation.
+        Synthesis function with this tool.
 
         Args:
             utry (np.ndarray): The unitary to synthesize.
@@ -45,14 +47,14 @@ class KAKTool ( nativetool.NativeTool ):
         if utry.shape[0] > 2 ** self.get_maximum_size():
             raise ValueError( "utry has incorrect dimensions." )
 
-        if utry.shape[0] == 4:
-            circ = qiskit.QuantumCircuit( 2 )
-            circ.unitary( utry, [ 1, 0 ] )
-        else:
-            circ = qiskit.QuantumCircuit( 1 )
-            circ.unitary( utry )
-
-        circ = qiskit.compiler.transpile( circ, basis_gates = ['u3', 'cx'],
-                                          optimization_level = 3 )
-        return circ.qasm()
+        solver = qsearch.solvers.LeastSquares_Jac_SolverNative()
+        options = qsearch.options.Options()
+        options.target = utry
+        options.solver = solver
+        options.verbosity = 0
+        compiler = qsearch.leap_compiler.LeapCompiler( options )
+        output = compiler.compile( options )
+        assembler = qsearch.assemblers.ASSEMBLER_IBMOPENQASM
+        output = assembler.assemble( output, options )
+        return output
 
