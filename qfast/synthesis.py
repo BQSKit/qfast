@@ -3,7 +3,7 @@
 from qfast import Decomposer, Instantiater, Combiner, plugins, utils
 
 def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
-                 tool = "QsearchTool", combiner = "NaiveCombiner",
+                 tool = "QSearchTool", combiner = "NaiveCombiner",
                  hierarchy_fn = lambda x : x // 3 if x > 5 else 2,
                  coupling_graph = None, intermediate_solution_callback = None,
                  model_options = {} ):
