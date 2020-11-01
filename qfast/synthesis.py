@@ -3,7 +3,7 @@
 from qfast import Decomposer, Instantiater, Combiner, plugins, utils
 
 def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
-                 tool = "QsearchTool",
+                 tool = "QsearchTool", combiner = "NaiveCombiner",
                  hierarchy_fn = lambda x : x // 3 if x > 5 else 2,
                  coupling_graph = None, intermediate_solution_callback = None,
                  model_options = {} ):
@@ -18,6 +18,8 @@ def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
         optimizer (str): The optimizer to use during decomposition.
 
         tool (str): The native tool to use during instantiation.
+
+        combiner (str): The combiner to use during recombination.
 
         hierarchy_fn (callable): This function determines the
             decomposition hierarchy.
@@ -44,6 +46,9 @@ def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
         if not utils.is_valid_coupling_graph( coupling_graph ):
             raise TypeError( "The specified coupling graph is invalid." )
 
+    if combiner not in plugins.get_combiners():
+        raise RuntimeError( "Cannot find combiner." )
+
     # Get target_gate_size for decomposition
     if tool not in plugins.get_native_tools():
         raise RuntimeError( "Cannot find native tool." )
@@ -66,7 +71,7 @@ def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
     qasm_list = instantiater.instantiate( gate_list )
 
     # Recombine all small circuits into one large output
-    combiner = Combiner( optimization = True )
+    combiner = plugins.get_combiner( combiner )()
     qasm_out = combiner.combine( qasm_list )
 
     return qasm_out
