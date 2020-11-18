@@ -26,10 +26,11 @@ QFAST can also be used as a library, [an example](https://github.com/BQSKit/qfas
 
 Native tools are necessary for QFAST to perform instantiation. During decomposition, the input unitary matrix is hierarchically broken into many smaller unitaries. At some level in the hierarchy, QFAST switches to instantiation, which uses a native synthesis tool to convert the small unitaries into native gates.
 
-Included with this python package is the KAK native tool. Here are some others:
+Included with this python package is the QSearch native tool. Here are some others:
 
-- [qfast-uq](https://github.com/BQSKit/qfast-uq): A UniversalQCompiler native tool
-- [qfast-qs](https://github.com/BQSKit/qfast-qs): A QSearch native tool
+- [qfast-qiskit](https://github.com/BQSKit/qfast-qiskit): Several qiskit tools
+- [qfast-uq](https://github.com/BQSKit/qfast-uq): A UniversalQCompiler native tool (deprecated)
+- [qfast-qs](https://github.com/BQSKit/qfast-qs): A QSearch native tool (Now default)
 
 ## References
 
