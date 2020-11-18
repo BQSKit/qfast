@@ -51,7 +51,14 @@ def hilbert_schmidt_distance ( X, Y ):
     """Calculates a Hilbert-Schmidt based distance."""
 
     if X.shape != Y.shape:
-        raise ValueError( "X and Y must have same shape." )
+        while X.shape[0] < Y.shape[0]:
+            X = np.kron( X, np.identity( 2 ) )
+
+        while Y.shape[0] < X.shape[0]:
+            Y = np.kron( Y, np.identity( 2 ) )
+
+        if X.shape != Y.shape:
+            raise ValueError( "X and Y must have same shape." )
 
     mat = np.matmul( np.transpose( np.conj( X ) ), Y )
     num = np.abs( np.trace( mat ) )
@@ -166,6 +173,7 @@ def run_tests():
             except TrialTerminatedException:
                 timeout = True
             except:
+                timeout = True
                 logger.error( "Benchmark %s encountered error during execution."
                               % name )
                 logger.error( traceback.format_exc() )
