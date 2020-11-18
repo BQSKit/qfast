@@ -13,7 +13,7 @@ class TestInstantiaterInstantiate ( ut.TestCase ):
                        [ 0, 0, 1, 0 ] ], dtype = np.complex128 )
 
     def test_instantiater_instantiate_invalid ( self ):
-        valid_tool = "KAKTool"
+        valid_tool = "QSearchTool"
         instantiater = Instantiater( valid_tool )
 
         test_0 = 0
@@ -31,7 +31,7 @@ class TestInstantiaterInstantiate ( ut.TestCase ):
         self.assertRaises( TypeError, instantiater.instantiate, test_5 )
         
     def test_instantiater_instantiate_valid ( self ):
-        valid_tool = "KAKTool"
+        valid_tool = "QSearchTool"
         instantiater = Instantiater( valid_tool )
 
         qasm_list = instantiater.instantiate( [ gate.Gate( self.CNOT, (0, 1) ) ] )

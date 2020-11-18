@@ -11,7 +11,7 @@ class TestInstantiaterConstructor ( ut.TestCase ):
         self.assertRaises( RuntimeError, Instantiater, invalid_tool )
 
     def test_instantiater_constructor_valid ( self ):
-        valid_tool = "KAKTool"
+        valid_tool = "QSearchTool"
         instantiater = Instantiater( valid_tool )
         self.assertTrue( instantiater.tool.__class__.__name__ == valid_tool )
 

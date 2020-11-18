@@ -9,7 +9,7 @@ class TestDecomposerConstructor ( ut.TestCase ):
         valid_utry = np.identity( 8 )
         valid_target_gate_size = 2
         valid_model = "PermModel"
-        valid_optimizer = "LFBGSOptimizer"
+        valid_optimizer = "LBFGSOptimizer"
         valid_hierarchy_fn = lambda x : 2
 
         invalid_utry = "a"
@@ -50,7 +50,7 @@ class TestDecomposerConstructor ( ut.TestCase ):
         valid_utry = np.identity( 8 )
         valid_target_gate_size = 2
         valid_model = "PermModel"
-        valid_optimizer = "LFBGSOptimizer"
+        valid_optimizer = "LBFGSOptimizer"
         valid_hierarchy_fn = lambda x : 2
         valid_coupling_graph = [ (0, 1), (1, 2) ]
 
