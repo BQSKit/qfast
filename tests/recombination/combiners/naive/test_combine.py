@@ -1,7 +1,7 @@
 import numpy    as np
 import unittest as ut
 
-from qfast.recombination.combiner import Combiner
+from qfast.recombination.combiners.naive import NaiveCombiner as Combiner
 
 class TestCombinerCombine ( ut.TestCase ):
 

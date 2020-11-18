@@ -4,8 +4,7 @@ as a native tool plugin to QFAST.
 """
 
 import qsearch
-from qsearch import unitaries, advanced_unitaries, leap_compiler
-from qsearch import multistart_solvers, parallelizers, reoptimizing_compiler
+from qsearch import options, assemblers, leap_compiler, post_processing
 
 from qfast import utils
 from qfast.instantiation import nativetool
@@ -23,7 +22,7 @@ class QSearchTool ( nativetool.NativeTool ):
             (int): The qubit count this tool can handle.
         """
 
-        return 4
+        return 3
 
     def synthesize ( self, utry ):
         """
@@ -47,14 +46,21 @@ class QSearchTool ( nativetool.NativeTool ):
         if utry.shape[0] > 2 ** self.get_maximum_size():
             raise ValueError( "utry has incorrect dimensions." )
 
-        solver = qsearch.solvers.LeastSquares_Jac_SolverNative()
-        options = qsearch.options.Options()
-        options.target = utry
-        options.solver = solver
-        options.verbosity = 0
-        compiler = qsearch.leap_compiler.LeapCompiler( options )
-        output = compiler.compile( options )
-        assembler = qsearch.assemblers.ASSEMBLER_IBMOPENQASM
-        output = assembler.assemble( output, options )
+        # Pass options into qsearch, being maximally quiet,
+        # and set the target to utry
+        opts = options.Options()
+        opts.target = utry
+        opts.verbosity = 0
+        opts.write_to_stdout = False
+        opts.reoptimize_size = 7
+
+        # use the LEAP compiler, which scales better than normal qsearch
+        compiler = leap_compiler.LeapCompiler()
+        output = compiler.compile( opts )
+
+        # LEAP requires some post-processing
+        pp = post_processing.LEAPReoptimizing_PostProcessor()
+        output = pp.post_process_circuit( output, opts )
+        output = assemblers.ASSEMBLER_IBMOPENQASM.assemble( output )
         return output
 
