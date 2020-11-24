@@ -128,7 +128,7 @@ def run_tests():
 
     data = {}
 
-    hierarchy_fn = lambda x : 3 if x > 6 else 2
+    hierarchy_fn = lambda x : 3 if x > 7 else 2
 
     for file in os.listdir():
         if os.path.isfile( file ) and file[ -8 : ] == ".unitary":
@@ -162,12 +162,12 @@ def run_tests():
             start = timer()
 
             try:
-                qasm = synthesize( utry, model = "PermModel",
+                qasm = synthesize( utry, model = "PredictQfactorModel",
                                    hierarchy_fn = hierarchy_fn,
                                    intermediate_solution_callback = soltree.add_intermediate,
                                    model_options = {
                                        "partial_solution_callback": soltree.add_partial,
-                                       "success_threshold": 1e-3
+                                       "success_threshold": 1e-6
                                    } )
 
             except TrialTerminatedException:

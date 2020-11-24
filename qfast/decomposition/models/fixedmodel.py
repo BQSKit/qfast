@@ -20,7 +20,7 @@ logger = logging.getLogger( "qfast" )
 
 class FixedModel ( CircuitModel ):
 
-    def __init__ ( self, utry, gate_size, locations, optimizer,
+    def __init__ ( self, utry, gate_size, topology, optimizer,
                    success_threshold = 1e-3, partial_solution_callback = None,
                    structure = None, repeat = False ):
         """
@@ -31,7 +31,7 @@ class FixedModel ( CircuitModel ):
 
             gate_size (int): The size of the model's gate.
 
-            locations (list[tuple[int]): The valid locations for gates.
+            topology (Topology): The circuit topology.
 
             optimizer (Optimizer): The optimizer available for use.
 
@@ -47,15 +47,11 @@ class FixedModel ( CircuitModel ):
             repeat (bool): If true, repeat structure until success.
         """
 
-        super().__init__( utry, gate_size, locations, optimizer,
+        super().__init__( utry, gate_size, topology, optimizer,
                           success_threshold, partial_solution_callback )
 
         if structure is None:
             raise ValueError( "Must include structure." )
-
-        if not utils.is_valid_locations( structure, self.num_qubits,
-                                         self.gate_size ):
-            raise TypeError( "Invalid locations." )
 
         self.structure = structure
 

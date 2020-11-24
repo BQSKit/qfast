@@ -32,7 +32,7 @@ class ModelMeta ( abc.ABCMeta ):
 class CircuitModel ( metaclass = ModelMeta ):
     """The CircuitModel abstract base class."""
 
-    def __init__ ( self, utry, gate_size, locations, optimizer,
+    def __init__ ( self, utry, gate_size, topology, optimizer,
                    success_threshold = 1e-3, partial_solution_callback = None ):
         """
         Default constructor for CircuitModels.
@@ -42,7 +42,7 @@ class CircuitModel ( metaclass = ModelMeta ):
 
             gate_size (int): The size of the model's gates.
 
-            locations (List[Tuple[int]]): The valid locations for gates.
+            topology (Topology): The circuit topology.
 
             optimizer (Optimizer): The optimizer available for use.
 
@@ -66,13 +66,9 @@ class CircuitModel ( metaclass = ModelMeta ):
             raise ValueError( "Invalid gate_size" )
 
         self.gate_size = gate_size
-
-        if not utils.is_valid_locations( locations, self.num_qubits,
-                                         self.gate_size ):
-            raise TypeError( "Invalid locations" )
-
+        self.topology = topology
         self.partial_solution_callback = partial_solution_callback
-        self.locations = locations
+        self.locations = self.topology.get_locations( self.gate_size )
         self.optimizer = optimizer
         self.utry = utry
         self.utry_dag = utry.conj().T

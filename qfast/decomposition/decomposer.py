@@ -116,8 +116,8 @@ class Decomposer():
                     new_gate_list.append( gate )
                 else:
                     next_gate_size = self.hierarchy_fn( gate.num_qubits )
-                    t = self.topology.get_locations( next_gate_size )
-                    m = self.model( self.utry, next_gate_size, t, self.optimizer(), **self.model_options )
+                    m = self.model( self.utry, next_gate_size, self.topology,
+                                    self.optimizer(), **self.model_options )
                     new_gate_list += m.solve()
 
             gate_list = new_gate_list

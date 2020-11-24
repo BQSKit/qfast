@@ -23,7 +23,7 @@ logger = logging.getLogger( "qfast" )
 
 class SoftPauliModel ( CircuitModel ):
 
-    def __init__ ( self, utry, gate_size, locations, optimizer,
+    def __init__ ( self, utry, gate_size, topology, optimizer,
                    success_threshold = 1e-3, partial_solution_callback = None,
                    progress_threshold = 5e-3 ):
         """
@@ -34,7 +34,7 @@ class SoftPauliModel ( CircuitModel ):
 
             gate_size (int): The size of the model's gate.
 
-            locations (list[tuple[int]): The valid locations for gates.
+            topology (Topology): The circuit topology.
 
             optimizer (Optimizer): The optimizer available for use.
 
@@ -48,7 +48,7 @@ class SoftPauliModel ( CircuitModel ):
                 for successful expansion.
         """
 
-        super().__init__( utry, gate_size, locations, optimizer,
+        super().__init__( utry, gate_size, topology, optimizer,
                           success_threshold, partial_solution_callback )
 
         self.progress_threshold = progress_threshold
