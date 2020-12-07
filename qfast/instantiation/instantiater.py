@@ -17,7 +17,7 @@ logger = logging.getLogger( "qfast" )
 class Instantiater():
     """The Instantiater Class."""
 
-    def __init__ ( self, tool ):
+    def __init__ ( self, tool, basis_gates = None ):
         """
         Construct an instantiater with a native tool.
 
@@ -32,6 +32,7 @@ class Instantiater():
             raise RuntimeError( f"Cannot find native tool: {tool}" )
 
         self.tool = plugins.get_native_tool( tool )()
+        self.basis_gates = basis_gates
 
     def instantiate ( self, gate_list ):
         """
@@ -57,7 +58,7 @@ class Instantiater():
         qasm_list = []
 
         for g in gate_list:
-            qasm = self.tool.synthesize( g.utry )
+            qasm = self.tool.synthesize( g.utry, basis_gates = self.basis_gates )
             qasm_list.append( ( qasm, g.location ) )
 
         return qasm_list

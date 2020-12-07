@@ -53,10 +53,6 @@ class FixedModel ( CircuitModel ):
         if structure is None:
             raise ValueError( "Must include structure." )
 
-        if not utils.is_valid_locations( structure, self.num_qubits,
-                                         self.gate_size ):
-            raise TypeError( "Invalid locations." )
-
         self.structure = structure
 
         for location in self.structure:

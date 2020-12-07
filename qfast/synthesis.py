@@ -5,8 +5,8 @@ from qfast import Decomposer, Instantiater, Combiner, plugins, utils
 def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
                  tool = "QSearchTool", combiner = "NaiveCombiner",
                  hierarchy_fn = lambda x : x // 3 if x > 5 else 2,
-                 coupling_graph = None, intermediate_solution_callback = None,
-                 model_options = {} ):
+                 coupling_graph = None, basis_gates = None,
+                 intermediate_solution_callback = None, model_options = {} ):
     """
     Synthesize a unitary matrix and return qasm code using QFAST.
 
@@ -26,6 +26,10 @@ def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
 
         coupling_graph (None or list[tuple[int]]): Determines the
             connection of qubits. If none, will be set to all-to-all.
+
+        basis_gates (None or list[str]): Determines the gate set
+            for the final circuit. Only works with tools that implement
+            this feature.
 
         intermediate_solution_callback (None or callable): Callback
             function for intermediate solutions. If not None, then
@@ -67,7 +71,7 @@ def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
     gate_list = decomposer.decompose()
 
     # Instantiate the small unitary gates into native code
-    instantiater = Instantiater( tool )
+    instantiater = Instantiater( tool, basis_gates = basis_gates )
     qasm_list = instantiater.instantiate( gate_list )
 
     # Recombine all small circuits into one large output

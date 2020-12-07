@@ -24,7 +24,7 @@ class QSearchTool ( nativetool.NativeTool ):
 
         return 3
 
-    def synthesize ( self, utry ):
+    def synthesize ( self, utry, **kwargs ):
         """
         Synthesis function with this tool.
 
