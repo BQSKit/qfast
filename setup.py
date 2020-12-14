@@ -21,7 +21,7 @@ setup( name = "qfast",
        description = "Quantum Fast Approximate Synthesis Tool",
        long_description = long_description,
        long_description_content_type = "text/markdown",
-       url = "https://github.com/edyounis/qfast",
+       url = "https://github.com/BQSKit/qfast",
        author = "Ed Younis",
        author_email = "edyounis@lbl.gov",
        classifiers = [
@@ -41,8 +41,8 @@ setup( name = "qfast",
        ],
        keywords = "quantum synthesis compilation",
        project_urls = {
-           "Bug Tracker": "https://github.com/edyounis/qfast/issues",
-           "Source Code": "https://github.com/edyounis/qfast"
+           "Bug Tracker": "https://github.com/BQSKit/qfast/issues",
+           "Source Code": "https://github.com/BQSKit/qfast"
        },
        packages = find_namespace_packages( exclude = [ "tests*",
                                                        "examples*",
