@@ -4,6 +4,8 @@ import scipy
 import numpy      as np
 import itertools  as it
 
+from qfast import utils
+
 # The Pauli Matrices
 X = np.array( [ [ 0, 1 ],
                 [ 1, 0 ] ], dtype = np.complex128 )
@@ -110,7 +112,7 @@ def unitary_log_no_i ( U, tol = 1e-15 ):
     if not utils.is_unitary( U, tol ):
         raise TypeError( "Input is not unitary." )
 
-    T, Z = la.schur( U )
+    T, Z = scipy.linalg.schur( U )
     T = np.diag( T )
     D = T / np.abs( T )
     D = np.diag( np.log( D ) )
