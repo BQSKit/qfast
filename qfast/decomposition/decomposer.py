@@ -23,7 +23,7 @@ class Decomposer():
     def __init__ ( self, utry, target_gate_size = 2, model = "PermModel",
                    optimizer = "LBFGSOptimizer",
                    hierarchy_fn = lambda x : x // 3 if x > 5 else 2,
-                   coupling_graph = None, intermediate_solution_callback = None,
+                   topology = None, intermediate_solution_callback = None,
                    model_options = {} ):
         """
         Initializes a decomposer.
@@ -41,8 +41,8 @@ class Decomposer():
             hierarchy_fn (callable): This function determines the
                 decomposition hierarchy.
 
-            coupling_graph (None or list[tuple[int]]): Determines the
-                connection of qubits. If none, will be set to all-to-all.
+            topoology (Topology): Determines the connection of qubits.
+                If none, will be set to all-to-all.
 
             intermediate_solution_callback (None or callable): Callback
                 function for intermediate solutions. If not None, then
@@ -77,7 +77,11 @@ class Decomposer():
 
         self.hierarchy_fn = hierarchy_fn
         self.intermediate_solution_callback = intermediate_solution_callback
-        self.topology = Topology( self.num_qubits, coupling_graph )
+
+        if topology is not None and not isinstance( topology, Topology ):
+            raise TypeError( "Invalid topology." )
+
+        self.topology = topology or Topology( self.num_qubits )
 
         if model not in plugins.get_models():
             raise RuntimeError( f"Cannot find decomposition model: {model}" )

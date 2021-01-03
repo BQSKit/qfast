@@ -1,6 +1,7 @@
 import numpy    as np
 import unittest as ut
 
+from qfast.topology import Topology
 from qfast.decomposition.decomposer import Decomposer
 
 class TestDecomposerConstructor ( ut.TestCase ):
@@ -19,7 +20,7 @@ class TestDecomposerConstructor ( ut.TestCase ):
         invalid_model = "test_dummy_model"
         invalid_optimizer = "test_dummy_optimizer"
         invalid_hierarchy_fn = "a"
-        invalid_coupling_graph = "a"
+        invalid_topology = "a"
 
         self.assertRaises( TypeError, Decomposer, invalid_utry )
 
@@ -44,7 +45,7 @@ class TestDecomposerConstructor ( ut.TestCase ):
         self.assertRaises( TypeError, Decomposer, valid_utry,
                            valid_target_gate_size, valid_model,
                            valid_optimizer, valid_hierarchy_fn,
-                           invalid_coupling_graph )
+                           invalid_topology )
 
     def test_decomposer_constructor_valid ( self ):
         valid_utry = np.identity( 8 )
@@ -52,11 +53,11 @@ class TestDecomposerConstructor ( ut.TestCase ):
         valid_model = "PermModel"
         valid_optimizer = "LBFGSOptimizer"
         valid_hierarchy_fn = lambda x : 2
-        valid_coupling_graph = [ (0, 1), (1, 2) ]
+        valid_topology  = Topology( 3, [ (0, 1), (1, 2) ] )
 
         decomposer = Decomposer( valid_utry, valid_target_gate_size,
                                  valid_model, valid_optimizer,
-                                 valid_hierarchy_fn, valid_coupling_graph )
+                                 valid_hierarchy_fn, valid_topology )
         
         self.assertTrue( np.allclose( decomposer.utry, valid_utry ) )
         self.assertTrue( decomposer.num_qubits == 3 )
@@ -69,7 +70,7 @@ class TestDecomposerConstructor ( ut.TestCase ):
         self.assertTrue( model == valid_model )
         self.assertTrue( optimizer == valid_optimizer )
 
-        for link in valid_coupling_graph:
+        for link in valid_topology.coupling_graph:
             self.assertTrue( link in decomposer.topology.coupling_graph )
 
         self.assertTrue( len( decomposer.topology.coupling_graph ) == 2 )

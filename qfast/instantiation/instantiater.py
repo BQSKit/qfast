@@ -9,6 +9,7 @@ import logging
 
 from qfast import gate
 from qfast import plugins
+from qfast.topology import Topology
 
 
 logger = logging.getLogger( "qfast" )
@@ -17,12 +18,16 @@ logger = logging.getLogger( "qfast" )
 class Instantiater():
     """The Instantiater Class."""
 
-    def __init__ ( self, tool, basis_gates = None ):
+    def __init__ ( self, tool, topology, basis_gates = None ):
         """
         Construct an instantiater with a native tool.
 
         Args:
             tool (str): The name of the native tool to use.
+
+            topology (Topology): The topology of the circuit.
+
+            basis_gates (List[str]): The two-qubit gate native gate.
 
         Raises:
             RuntimeError: If the native tool cannot be found.
@@ -31,7 +36,11 @@ class Instantiater():
         if tool not in plugins.get_native_tools():
             raise RuntimeError( f"Cannot find native tool: {tool}" )
 
+        if not isinstance( topology, Topology ):
+            raise TypeError( "Invalid topology" )
+
         self.tool = plugins.get_native_tool( tool )()
+        self.topology = topology
         self.basis_gates = basis_gates
 
     def instantiate ( self, gate_list ):
@@ -57,8 +66,13 @@ class Instantiater():
 
         qasm_list = []
 
-        for g in gate_list:
-            qasm = self.tool.synthesize( g.utry, basis_gates = self.basis_gates )
+        for g in gate_list: 
+            coupling_graph = self.topology.get_subgraph( g.location )
+            renum_map = { q:i for i, q in enumerate(g.location) }
+            coupling_graph = [ (renum_map[i], renum_map[j]) for i, j in coupling_graph ]
+            qasm = self.tool.synthesize( g.utry,
+                                         basis_gates = self.basis_gates, 
+                                         coupling_graph = coupling_graph )
             qasm_list.append( ( qasm, g.location ) )
 
         return qasm_list

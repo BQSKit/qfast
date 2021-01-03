@@ -2,6 +2,7 @@ import numpy    as np
 import unittest as ut
 
 from qfast import gate
+from qfast.topology import Topology
 from qfast.instantiation.instantiater import Instantiater
 
 
@@ -14,7 +15,8 @@ class TestInstantiaterInstantiate ( ut.TestCase ):
 
     def test_instantiater_instantiate_invalid ( self ):
         valid_tool = "QSearchTool"
-        instantiater = Instantiater( valid_tool )
+        valid_topology = Topology( 3, None )
+        instantiater = Instantiater( valid_tool, valid_topology )
 
         test_0 = 0
         test_1 = "a"
@@ -32,7 +34,8 @@ class TestInstantiaterInstantiate ( ut.TestCase ):
         
     def test_instantiater_instantiate_valid ( self ):
         valid_tool = "QSearchTool"
-        instantiater = Instantiater( valid_tool )
+        valid_topology = Topology( 3, None )
+        instantiater = Instantiater( valid_tool, valid_topology )
 
         qasm_list = instantiater.instantiate( [ gate.Gate( self.CNOT, (0, 1) ) ] )
 

@@ -1,4 +1,4 @@
 numpy>=1.16.6
 scipy>=1.4.1
 sympy>=1.5
-qsearch>=2.2.0
+qsearch>=2.4.0

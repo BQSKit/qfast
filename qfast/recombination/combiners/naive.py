@@ -70,15 +70,15 @@ class NaiveCombiner ( combiner.Combiner ):
         qubit_ptrn = None
 
         gate_list = []
+        lines = [ line.strip() + ";" for line in qasm.split(";") ]
 
-        for line in qasm.splitlines():
-
+        for line in lines:
             # Skip header, empty lines, and commentted lines
             if "OPENQASM" in line:
                 continue
             elif "include" in line:
                 continue
-            elif line.strip() == "":
+            elif line.strip() == ";" or line.strip() == "":
                 continue
             elif line[:2] == r"\\":
                 continue

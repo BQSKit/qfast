@@ -1,6 +1,7 @@
 """This module implements a basic synthesize function."""
 
 from qfast import Decomposer, Instantiater, Combiner, plugins, utils
+from qfast.topology import Topology
 
 def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
                  tool = "QSearchTool", combiner = "NaiveCombiner",
@@ -50,6 +51,7 @@ def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
         if not utils.is_valid_coupling_graph( coupling_graph ):
             raise TypeError( "The specified coupling graph is invalid." )
 
+
     if combiner not in plugins.get_combiners():
         raise RuntimeError( "Cannot find combiner." )
 
@@ -59,11 +61,14 @@ def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
 
     target_gate_size = plugins.get_native_tool( tool )().get_maximum_size()
 
+    num_qubits = utils.get_num_qubits( utry )
+    topology = Topology( num_qubits, coupling_graph )
+
     # Decompose the big input unitary into smaller unitary gates.
     decomposer = Decomposer( utry, target_gate_size = target_gate_size,
                              model = model,
                              optimizer = optimizer,
-                             coupling_graph = coupling_graph,
+                             topology = topology,
                              hierarchy_fn = hierarchy_fn,
                              intermediate_solution_callback = intermediate_solution_callback,
                              model_options = model_options )
@@ -71,7 +76,7 @@ def synthesize ( utry, model = "PermModel", optimizer = "LBFGSOptimizer",
     gate_list = decomposer.decompose()
 
     # Instantiate the small unitary gates into native code
-    instantiater = Instantiater( tool, basis_gates = basis_gates )
+    instantiater = Instantiater( tool, topology, basis_gates = basis_gates )
     qasm_list = instantiater.instantiate( gate_list )
 
     # Recombine all small circuits into one large output

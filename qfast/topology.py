@@ -50,7 +50,7 @@ class Topology:
         included if each pair of qubits is directly connected or connected
         through other qubits in the location.
 
-        Args
+        Args:
             gate_size (int): The size of each location in the final list.
 
         Returns:
@@ -89,4 +89,12 @@ class Topology:
 
         self.cache[ gate_size ] = locations
         return locations
+
+    def get_subgraph ( self, location ):
+        """Returns the sub_coupling_graph with qubits in location."""
+        subgraph = []
+        for q0, q1 in self.coupling_graph:
+            if q0 in location and q1 in location:
+                subgraph.append( (q0, q1) )
+        return subgraph
 
