@@ -1,3 +1,11 @@
+# Deprecation
+
+QFAST is no longer being actively maintained.  The successor to qfast is [BQSKit](https://github.com/BQSKit/bqskit).
+
+BQSKit combines several quantum synthesis projects, including the main synthesis algorithm implemented by qfast, [qsearch](https://github.com/BQSKit/qsearch), and a circuit partitioning and reoptimization project. BQSKit is being actively developed and with new features and bug fixes, including updates based on feedback from users.
+
+BQSKit does have a different API, so moving an existing project to BQSKit may take some effort. In the meantime, qfast isn't going anywhere, but is not longer actively maintained, will not receive any new features, and may not receive bugfix or compatability updates.
+
 # QFAST: Quantum Fast Approximate Synthesis Tool
 
 QFAST is a quantum synthesis tool designed to produce short circuits and to scale well in practice. QFAST uses a mathematical model of circuits encoding both gate placement and function. This is packaged together with a hierarchical stochastic gradient descent formulation that combines “coarse-grained” fast optimization during circuit structure search with a better, but slower, stage only in the final circuit refinement.
